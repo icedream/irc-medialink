@@ -1,0 +1,13 @@
+kinds:
+    v1Thumbnail:
+        fields:
+            source: string
+            width: uint64
+            height: uint64
+    v1Summary:
+        fields:
+            title: string
+            extract: string
+            thumbnail: v1Thumbnail
+            lang: string
+            dir: string

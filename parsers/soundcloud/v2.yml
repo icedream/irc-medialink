@@ -1,0 +1,160 @@
+# FIXME - See https://github.com/golang/go/issues/9037 - Revert to using time.Time in the API as soon as this is fixed!
+#imports:
+#    - time
+kinds:
+    v2Object:
+        fields:
+            id: uint64
+            kind: v2Kind
+    v2Product:
+        fields:
+            id: string
+            name: string
+    v2Subscription:
+        fields:
+            product: v2Product
+            recurring: bool
+    v2VisualItem:
+        fields:
+            urn: string
+            entry_time: uint64
+            visual_url: string
+    v2Visuals:
+        fields:
+            urn: string
+            enabled: bool
+            # TODO: Support map in generator
+            #visuals: map[string]v2VisualItem
+    v2User:
+        extends:
+            - v2Object
+        fields:
+            avatar_url: string
+            city: string
+            comments_count: uint64
+            country_code: string
+            # TODO: Support slice in generator
+            #creator_subscriptions: []v2Subscription
+            description: string
+            followers_count: uint64
+            followings_count: uint64
+            first_name: string
+            full_name: string
+            groups_count: uint64
+            #last_modified: time.Time
+            last_modified: timeString
+            last_name: string
+            likes_count: uint64
+            permalink: string
+            permalink_url: string
+            playlist_count: uint64
+            reposts_count: uint64
+            track_count: uint64
+            uri: string
+            urn: string
+            username: string
+            verified: bool
+            visuals: v2Visuals
+    v2Track:
+        extends:
+            - v2Object
+        fields:
+            artwork_url: string
+            commentable: bool
+            comment_count: uint64
+            #created_at: time.Time
+            created_at: timeString
+            description: string
+            downloadable: bool
+            download_count: uint64
+            download_url: string
+            duration: uint64
+            full_duration: uint64
+            embeddable_by: string
+            genre: string
+            has_downloads_left: bool
+            label_name: string
+            #last_modified: time.Time
+            last_modified: timeString
+            license: string
+            likes_count: uint64
+            permalink: string
+            permalink_url: string
+            playback_count: uint64
+            public: bool
+            #publisher_metadata: map[string]interface{}
+            purchase_title: string
+            purchase_url: string
+            #release_date: time.Time
+            release_date: timeString
+            reposts_count: uint64
+            secret_token: string
+            sharing: string
+            state: string
+            streamable: bool
+            tag_list: string
+            title: string
+            uri: string
+            urn: string
+            user_id: uint64
+            visuals: v2Visuals
+            waveform_url: string
+            monetization_model: string
+            policy: string
+            user: v2User
+    v2Group:
+        extends:
+            - v2Object
+        fields:
+            artwork_url: string
+            #created_at: time.Time
+            created_at: timeString
+            description: string
+            members_count: uint64
+            moderated: bool
+            name: string
+            permalink: string
+            permalink_url: string
+            short_description: string
+            track_count: uint64
+            uri: string
+            creator: v2User
+    v2Playlist:
+        extends:
+            - v2Object
+        fields:
+            artwork_url: string
+            #created_at: time.Time
+            created_at: timeString
+            description: string
+            duration: uint64
+            embeddable_by: string
+            genre: string
+            label_name: string
+            #last_modified: time.Time
+            last_modified: timeString
+            license: string
+            likes_count: uint64
+            permalink: string
+            permalink_url: string
+            public: bool
+            purchase_title: string
+            purchase_url: string
+            #release_date: time.Time
+            release_date: timeString
+            reposts_count: uint64
+            secret_token: string
+            sharing: string
+            tag_list: string
+            title: string
+            uri: string
+            user_id: uint64
+            set_type: string
+            is_album: bool
+            #published_at: time.Time
+            published_at: timeString
+            managed_by_feeds: bool
+            user: v2User
+            # TODO: Support slice in generator
+            #tracks: []v2Track
+            track_count: uint64

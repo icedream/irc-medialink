@@ -1,0 +1,31 @@
+# Binaries
+*.o
+*.a
+*.so
+*.dll
+*.exe
+*.test
+*.prof
+irc-medialink
+
+# Folders
+_obj
+_test
+
+# Architecture specific extensions/prefixes
+*.[568vq]
+[568vq].out
+
+# cgo
+*.cgo1.go
+*.cgo2.c
+_cgo_defun.c
+_cgo_gotypes.go
+_cgo_export.*
+
+# Configurations
+config.yml
+secrets.yml
+
+_testmain.go
+
