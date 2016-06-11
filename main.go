@@ -161,7 +161,7 @@ func main() {
 						time.Sleep(1 * time.Second)
 						conn.Privmsgf(targetChannel, "Thanks for inviting me, %s! I am %s, the friendly bot that shows information about links posted in this channel. I hope I can be of great help for everyone here in %s! :)", sourceNick, conn.GetNick(), targetChannel)
 						time.Sleep(2 * time.Second)
-						conn.Privmsg(targetChannel, "If you ever run into trouble with me (or find any bugs), please us the channel #MediaLink for contact on this IRC.")
+						conn.Privmsg(targetChannel, "If you ever run into trouble with me (or find any bugs), please use the channel #MediaLink for contact on this IRC.")
 						break joinWaitLoop
 					}
 				case channel := <-inviteChan:
