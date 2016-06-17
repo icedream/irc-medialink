@@ -11,7 +11,7 @@ Currently explicit support has been built in for:
 
 Generally, for websites that are not directly supported the bot will print the page title.
 
-# How to run the bot
+## How to run the bot
 
 In order to properly run the bot, you need to [register a SoundCloud application](http://soundcloud.com/you/apps/new) and [get a YouTube Data API key](https://console.developers.google.com/apis/api/youtube/overview) for it and then feed the API data to the bot through the command line arguments.
 
@@ -25,7 +25,7 @@ Then you can find out which options you can pass to the bot directly by running 
 
 You need to at least pass the `--server`, `--youtube-key`, `--soundcloud-id` and `--soundcloud-secret` parameters.
 
-# ...with Docker
+### ...with Docker
 
 You can use the `icedream/irc-medialink` image in order to run this bot in Docker. You can pull it using this command:
 
@@ -54,12 +54,12 @@ services:
     restart: always
 ```
 
-# Support
+## Support
 
 This bot is officially tested and running on the LibraIRC IRC network (irc.librairc.net) though also being able to run on other IRC networks.
 
 For support on LibraIRC please use the channel #MediaLink there to get in contact with Icedream.
 
-# License
+## License
 
 This project is licensed under the **GNU General Public License Version 2 or later**. For more information check the [LICENSE](LICENSE) file.
