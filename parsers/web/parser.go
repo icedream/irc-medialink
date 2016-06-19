@@ -28,6 +28,7 @@ var (
 )
 
 const (
+	noTitleStr  = "(no title)"
 	maxHtmlSize = 8 * 1024
 )
 
@@ -111,7 +112,7 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 				result.Information[0]["Title"] = rxNewlines.ReplaceAllString(scrape.Text(title), " ")
 			} else {
 				// No title found
-				result.Information[0]["Title"] = "(no title)"
+				result.Information[0]["Title"] = noTitleStr
 			}
 		case "image/png", "image/jpeg", "image/gif":
 			log.Print("Parsing image...")
