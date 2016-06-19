@@ -1,5 +1,7 @@
 # MediaLink IRC Bot
 
+[![Build Status](https://travis-ci.org/icedream/irc-medialink.svg?branch=master)](https://travis-ci.org/icedream/irc-medialink)
+
 This IRC bot automatically parses links posted in chat rooms and prints information about them.
 
 Currently explicit support has been built in for:
