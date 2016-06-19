@@ -68,7 +68,7 @@
 				{{ end }}
 				{{ if (index . "ImageSize") (index . "Size") }}
 					{{ with index . "ImageSize" }}
-						{{ .X }}x{{ .Y }}
+						{{ .X }}×{{ .Y }}
 					{{ end }}
 					{{ with index . "Size" }}
 						({{ size . }})
