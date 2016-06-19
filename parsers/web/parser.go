@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 
 	"golang.org/x/net/html"
@@ -22,6 +23,8 @@ import (
 
 var (
 	ErrCorruptedImage = errors.New("Corrupted image.")
+
+	rxNewlines = regexp.MustCompile(`(?:\r?\n)*`)
 )
 
 const (
@@ -105,7 +108,7 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 			title, ok := scrape.Find(root, scrape.ByTag(atom.Title))
 			if ok {
 				// Got it!
-				result.Information[0]["Title"] = scrape.Text(title)
+				result.Information[0]["Title"] = rxNewlines.ReplaceAllString(scrape.Text(title), " ")
 			} else {
 				// No title found
 				result.Information[0]["Title"] = "(no title)"
