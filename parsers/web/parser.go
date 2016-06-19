@@ -16,11 +16,16 @@ import (
 	_ "image/png"
 
 	"github.com/icedream/irc-medialink/parsers"
+	"github.com/icedream/irc-medialink/util/limitedio"
 	"github.com/yhat/scrape"
 )
 
 var (
 	ErrCorruptedImage = errors.New("Corrupted image.")
+)
+
+const (
+	maxHtmlSize = 8 * 1024
 )
 
 type Parser struct{}
@@ -79,26 +84,37 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 		switch strings.ToLower(contentType[0:sep]) {
 		case "text/html":
 			// Parse the page
-			root, err := html.Parse(resp.Body)
+			var contentLength int
+			if resp.ContentLength < 0 || resp.ContentLength > maxHtmlSize {
+				contentLength = maxHtmlSize
+			} else {
+				contentLength = int(resp.ContentLength)
+			}
+			limitedBody := limitedio.NewLimitedReader(resp.Body, contentLength)
+			root, err := html.Parse(limitedBody)
 			if err != nil {
 				result.Error = err
 				return
 			}
 			// Search for the title
+			result.Information = []map[string]interface{}{
+				map[string]interface{}{
+					"IsUpload": false,
+				},
+			}
 			title, ok := scrape.Find(root, scrape.ByTag(atom.Title))
 			if ok {
 				// Got it!
-				result.Information = []map[string]interface{}{
-					map[string]interface{}{
-						"IsUpload": false,
-						"Title":    scrape.Text(title),
-					},
-				}
+				result.Information[0]["Title"] = scrape.Text(title)
 			} else {
-				result.Ignored = true
+				// No title found
+				result.Information[0]["Title"] = "(no title)"
 			}
 		case "image/png", "image/jpeg", "image/gif":
 			log.Print("Parsing image...")
+
+			// No need to limit the reader to a specific size here as
+			// image.DecodeConfig only reads as much as needed anyways.
 			if m, imgType, err := image.DecodeConfig(resp.Body); err != nil {
 				result.UserError = ErrCorruptedImage
 			} else {
