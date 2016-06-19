@@ -24,7 +24,7 @@ import (
 var (
 	ErrCorruptedImage = errors.New("Corrupted image.")
 
-	rxNewlines = regexp.MustCompile(`(?:\r?\n)*`)
+	rxNewlines = regexp.MustCompile(`(?:\r?\n)+`)
 )
 
 const (
