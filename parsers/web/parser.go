@@ -89,7 +89,6 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 		if sep < 0 {
 			sep = len(contentType)
 		}
-		log.Print(contentType[0:sep])
 		switch strings.ToLower(contentType[0:sep]) {
 		case "text/html":
 			// Parse the page
