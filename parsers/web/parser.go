@@ -59,11 +59,9 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 		req.Header.Set("Referer", referer.String())
 	}
 	if resp, err := http.DefaultTransport.RoundTrip(req); err != nil {
-		log.Print("HTTP Get failed")
 		result.Error = err
 		return
 	} else {
-		log.Printf("Web parser result: %+v", resp)
 		defer resp.Body.Close()
 		if 300 <= resp.StatusCode && resp.StatusCode < 400 {
 			if u2, err := resp.Location(); err == nil && u2 != nil && *u2 != *u {
@@ -115,7 +113,6 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 				result.Information[0]["Title"] = noTitleStr
 			}
 		case "image/png", "image/jpeg", "image/gif":
-			log.Print("Parsing image...")
 
 			// No need to limit the reader to a specific size here as
 			// image.DecodeConfig only reads as much as needed anyways.
@@ -135,7 +132,6 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 			}
 		default:
 			// TODO - Implement generic head info?
-			log.Printf("web parser: Ignoring content of type %s", resp.Header.Get("content-type"))
 			result.Ignored = true
 		}
 	}
