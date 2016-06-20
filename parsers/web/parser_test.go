@@ -114,7 +114,7 @@ func Test_Parser_Parse_IRCBotScience_Redirect(t *testing.T) {
 	assert.Nil(t, result.Error)
 	assert.Nil(t, result.UserError)
 	assert.NotNil(t, result.FollowUrl)
-	assert.Equal(t, *originalUrl, *result.FollowUrl)
+	assert.Equal(t, originalUrl.String(), result.FollowUrl.String())
 }
 
 func Test_Parser_Parse_Hash(t *testing.T) {
