@@ -116,3 +116,18 @@ func Test_Parser_Parse_IRCBotScience_Redirect(t *testing.T) {
 	assert.NotNil(t, result.FollowUrl)
 	assert.Equal(t, *originalUrl, *result.FollowUrl)
 }
+
+func Test_Parser_Parse_Hash(t *testing.T) {
+	p := mustNewParser(t)
+	originalUrl := &url.URL{
+		Scheme: "https",
+		Host:   "www.google.com",
+		Path:   "/#invalid",
+	}
+	result := p.Parse(originalUrl, nil)
+
+	t.Logf("Result: %+v", result)
+	assert.False(t, result.Ignored)
+	assert.Nil(t, result.Error)
+	assert.Nil(t, result.UserError)
+}

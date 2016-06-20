@@ -28,6 +28,7 @@ var (
 )
 
 const (
+	runeHash    = '#'
 	noTitleStr  = "(no title)"
 	maxHtmlSize = 8 * 1024
 )
@@ -47,6 +48,12 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 	if !strings.EqualFold(u.Scheme, "http") && !strings.EqualFold(u.Scheme, "https") {
 		result.Ignored = true
 		return
+	}
+
+	// Remove hash reference from URL since that's not meant to be in the request
+	if strings.Contains(u.Path, string(runeHash)) {
+		u = &(*u) // avoid modifying original URL object
+		u.Path = u.Path[0:strings.IndexRune(u.Path, runeHash)]
 	}
 
 	// Make request
