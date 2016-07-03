@@ -23,8 +23,10 @@ func (p *Parser) Init() error {
 }
 
 func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult) {
-	if !strings.HasSuffix(strings.ToLower(u.Host), ".wikipedia.org") ||
-		strings.EqualFold(u.Host, "wikipedia.org") {
+	if !strings.EqualFold(u.Scheme, "http") ||
+		!strings.EqualFold(u.Scheme, "https") ||
+		(!strings.HasSuffix(strings.ToLower(u.Host), ".wikipedia.org") &&
+			!strings.EqualFold(u.Host, "wikipedia.org")) {
 		result.Ignored = true
 		return
 	}
