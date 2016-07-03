@@ -52,33 +52,40 @@ func (m *Manager) RegisterParser(parser Parser) error {
 	return nil
 }
 
-func (m *Manager) Parse(u *url.URL) (string, parsers.ParseResult) {
-	var oldU *url.URL
+func (m *Manager) Parse(currentUrl *url.URL) (string, parsers.ParseResult) {
+	var referer *url.URL
 	attempt := 0
 followLoop:
-	for u != nil {
-		log.Printf("Parsing %s (referer %s)...", u, oldU)
+	for currentUrl != nil {
 		attempt++
 		if attempt > 15 {
-			log.Printf("WARNING: Potential infinite loop for url %s, abort parsing", u)
+			log.Printf("WARNING: Potential infinite loop for url %s, abort parsing", currentUrl)
 			break
 		}
 		for _, p := range m.GetParsers() {
-			r := p.Parse(u, oldU)
+			var refererCopy *url.URL
+			if referer != nil {
+				refererCopy = &url.URL{}
+				*refererCopy = *referer
+			}
+			currentUrlCopy := &url.URL{}
+			*currentUrlCopy = *currentUrl
+			r := p.Parse(currentUrlCopy, refererCopy)
 			if r.Ignored {
 				continue
 			}
 			if r.FollowUrl != nil {
-				if *u == *r.FollowUrl {
+				if *currentUrl == *r.FollowUrl {
 					log.Printf("WARNING: Ignoring request to follow to same URL, ignoring.")
 					break followLoop
 				}
-				oldU, u = u, r.FollowUrl
+				referer = currentUrl
+				currentUrl = r.FollowUrl
 				continue followLoop
 			}
 			return p.Name(), r
 		}
-		u = nil
+		currentUrl = nil
 	}
 
 	// No parser matches, link ignored
