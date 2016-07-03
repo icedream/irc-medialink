@@ -23,7 +23,8 @@ func (p *Parser) Init() error {
 }
 
 func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult) {
-	if !strings.HasSuffix(strings.ToLower(u.Host), ".wikipedia.org") {
+	if !strings.HasSuffix(strings.ToLower(u.Host), ".wikipedia.org") ||
+		strings.EqualFold(u.Host, "wikipedia.org") {
 		result.Ignored = true
 		return
 	}
@@ -37,6 +38,11 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 		}
 
 		// We're using the original host for link localization
+		// or en.wikipedia.org for (www.)wikipedia.org
+		if strings.EqualFold(u.Host, "wikipedia.org") ||
+			strings.EqualFold(u.Host, "www.wikipedia.org") {
+			u.Host = "en.wikipedia.org"
+		}
 		r, err := http.Get("https://" + u.Host + "/api/rest_v1/page/summary/" + titleEscaped)
 		if err != nil {
 			result.Error = err
