@@ -168,6 +168,12 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 				} else {
 					log.Print(err)
 				}
+
+				if item.ContentDetails.ContentRating != nil {
+					if item.ContentDetails.ContentRating.YtRating == "ytAgeRestricted" {
+						r["AgeRestriction"] = "NSFW"
+					}
+				}
 			}
 			if item.Statistics != nil {
 				r["Views"] = item.Statistics.ViewCount

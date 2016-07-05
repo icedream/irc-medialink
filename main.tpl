@@ -25,6 +25,13 @@
 
 	»
 	
+	{{- if index . "AgeRestriction" }}
+		{{ color 4 -}}
+		{{ bold -}}
+		[{{- index . "AgeRestriction" }}]
+		{{- reset }}
+	{{- end }}
+	
 	{{ if index . "IsProfile" }}
 		{{- if index . "Title" }}
 			{{ bold -}}
