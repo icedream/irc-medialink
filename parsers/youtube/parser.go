@@ -208,8 +208,7 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 			r := map[string]interface{}{
 				"Header":      header,
 				"IsProfile":   true,
-				"Title":       "Channel",
-				"Author":      item.Snippet.Title,
+				"Name":        item.Snippet.Title,
 				"CountryCode": item.Snippet.Country,
 				"Description": item.Snippet.Description,
 				"ShortUrl":    item.Snippet.CustomUrl,
