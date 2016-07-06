@@ -21,7 +21,7 @@
 	{{- else -}}
 		Link info
 	{{- end -}}
-	{{- bold }}
+	{{- reset }}
 
 	»
 	

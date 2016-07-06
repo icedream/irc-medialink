@@ -22,9 +22,7 @@ const (
 	youtubeIdType_ChannelId
 	youtubeIdType_Playlist
 
-	header = "\x031,0You\x030,4Tube\x03" +
-		"99,99" + /* Fix for KiwiIRC not flushing background color on empty color tag */
-		"\x03" /* Fix for Mibbit interpreting 99 as green instead of transparent */
+	header = "\x0301,00You\x0300,04Tube"
 )
 
 var (
