@@ -129,6 +129,8 @@ func main() {
 	conn.AddCallback("JOIN", func(e *irc.Event) {
 		// Is this JOIN not about us?
 		if !strings.EqualFold(e.Nick, conn.GetNick()) {
+			// Save this user's details for a temporary ignore
+			m.NotifyUserJoined(e.Arguments[0], e.Source)
 			return
 		}
 
@@ -195,6 +197,12 @@ func main() {
 			msg := stripIrcFormatting(event.Message())
 
 			log.Printf("<%s @ %s> %s", event.Nick, target, msg)
+
+			// Ignore user if they just joined
+			if shouldIgnore := m.TrackUser(target, event.Source); shouldIgnore {
+				log.Print("This message will be ignored since the user just joined.")
+				return
+			}
 
 			urlStr := xurls.Relaxed.FindString(msg)
 
