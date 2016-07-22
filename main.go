@@ -74,19 +74,27 @@ func main() {
 	m := manager.NewManager()
 
 	// Load youtube parser
-	youtubeParser := &youtube.Parser{
-		Config: &youtube.Config{ApiKey: youtubeApiKey},
+	if len(youtubeApiKey) > 0 {
+		youtubeParser := &youtube.Parser{
+			Config: &youtube.Config{ApiKey: youtubeApiKey},
+		}
+		must(m.RegisterParser(youtubeParser))
+	} else {
+		log.Println("No YouTube API key provided, YouTube parsing via API is disabled.")
 	}
-	must(m.RegisterParser(youtubeParser))
 
 	// Load soundcloud parser
-	soundcloudParser := &soundcloud.Parser{
-		Config: &soundcloud.Config{
-			ClientId:     soundcloudClientId,
-			ClientSecret: soundcloudClientSecret,
-		},
+	if len(soundcloudClientId) > 0 && len(soundcloudClientSecret) > 0 {
+		soundcloudParser := &soundcloud.Parser{
+			Config: &soundcloud.Config{
+				ClientId:     soundcloudClientId,
+				ClientSecret: soundcloudClientSecret,
+			},
+		}
+		must(m.RegisterParser(soundcloudParser))
+	} else {
+		log.Println("No SoundCloud client ID or secret provided, SoundCloud parsing via API is disabled.")
 	}
-	must(m.RegisterParser(soundcloudParser))
 
 	// Load wikipedia parser
 	must(m.RegisterParser(new(wikipedia.Parser)))
