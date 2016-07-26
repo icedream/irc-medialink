@@ -33,7 +33,9 @@ const (
 	maxHtmlSize = 8 * 1024
 )
 
-type Parser struct{}
+type Parser struct {
+	EnableImages bool
+}
 
 func (p *Parser) Init() error {
 	return nil
@@ -119,23 +121,27 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 				result.Information[0]["Title"] = noTitleStr
 			}
 		case "image/png", "image/jpeg", "image/gif":
+			if p.EnableImages {
 
-			// No need to limit the reader to a specific size here as
-			// image.DecodeConfig only reads as much as needed anyways.
-			if m, imgType, err := image.DecodeConfig(resp.Body); err != nil {
-				result.UserError = ErrCorruptedImage
-			} else {
-				info := map[string]interface{}{
-					"IsUpload":  true,
-					"ImageSize": image.Point{X: m.Width, Y: m.Height},
-					"ImageType": strings.ToUpper(imgType),
+				// No need to limit the reader to a specific size here as
+				// image.DecodeConfig only reads as much as needed anyways.
+				if m, imgType, err := image.DecodeConfig(resp.Body); err != nil {
+					result.UserError = ErrCorruptedImage
+				} else {
+					info := map[string]interface{}{
+						"IsUpload":  true,
+						"ImageSize": image.Point{X: m.Width, Y: m.Height},
+						"ImageType": strings.ToUpper(imgType),
+					}
+					if resp.ContentLength > 0 {
+						info["Size"] = uint64(resp.ContentLength)
+					}
+					result.Information = []map[string]interface{}{info}
 				}
-				if resp.ContentLength > 0 {
-					info["Size"] = uint64(resp.ContentLength)
-				}
-				result.Information = []map[string]interface{}{info}
-				log.Printf("Got through: %+v!", info)
+				break
 			}
+
+			fallthrough
 		default:
 			// TODO - Implement generic head info?
 			result.Ignored = true

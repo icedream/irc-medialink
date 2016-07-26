@@ -32,6 +32,8 @@ func main() {
 	var soundcloudClientId string
 	var soundcloudClientSecret string
 
+	var webEnableImages bool
+
 	var debug bool
 	var useTLS bool
 	var server string
@@ -58,8 +60,13 @@ func main() {
 
 	// Youtube config
 	kingpin.Flag("youtube-key", "The API key to use to access the YouTube API.").StringVar(&youtubeApiKey)
+
+	// SoundCloud config
 	kingpin.Flag("soundcloud-id", "The SoundCloud ID.").StringVar(&soundcloudClientId)
 	kingpin.Flag("soundcloud-secret", "The SoundCloud secret.").StringVar(&soundcloudClientSecret)
+
+	// Web parser config
+	kingpin.Flag("images", "Enables parsing links of images. Disabled by default for legal reasons.").BoolVar(&webEnableImages)
 
 	kingpin.Parse()
 
@@ -100,7 +107,10 @@ func main() {
 	must(m.RegisterParser(new(wikipedia.Parser)))
 
 	// Load web parser
-	must(m.RegisterParser(new(web.Parser)))
+	webParser := &web.Parser{
+		EnableImages: webEnableImages,
+	}
+	must(m.RegisterParser(webParser))
 
 	// IRC
 	conn := m.AntifloodIrcConn(irc.IRC(nickname, ident))
