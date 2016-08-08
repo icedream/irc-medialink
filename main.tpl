@@ -67,19 +67,22 @@
 				({{ . }})
 			{{ end }}
 		{{ else }}
-			{{ if index . "Description" }}
-				{{ excerpt 384 (index . "Description") }}
-			{{ else }}
-				{{ with index . "ImageType" }}
-					{{ . }} image,
+			{{ with index . "Description" }}
+				{{ excerpt 384 . }}
+			{{ end }}
+		{{ end }}
+		
+		{{ if index . "ImageType" }}
+			{{ if index . "Title" }}
+				·
+			{{ end }}
+			{{ .ImageType }} image,
+			{{ if (index . "ImageSize") (index . "Size") }}
+				{{ with index . "ImageSize" }}
+					{{ .X }}×{{ .Y }}
 				{{ end }}
-				{{ if (index . "ImageSize") (index . "Size") }}
-					{{ with index . "ImageSize" }}
-						{{ .X }}×{{ .Y }}
-					{{ end }}
-					{{ with index . "Size" }}
-						({{ size . }})
-					{{ end }}
+				{{ with index . "Size" }}
+					({{ size . }})
 				{{ end }}
 			{{ end }}
 		{{ end }}

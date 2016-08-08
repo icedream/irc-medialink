@@ -133,6 +133,7 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 						"IsUpload":  true,
 						"ImageSize": image.Point{X: m.Width, Y: m.Height},
 						"ImageType": strings.ToUpper(imgType),
+						"Title":     u.Path[strings.LastIndex(u.Path, "/")+1:],
 					}
 					if resp.ContentLength > 0 {
 						info["Size"] = uint64(resp.ContentLength)
