@@ -2,7 +2,6 @@ package web
 
 import (
 	"errors"
-	"log"
 	"net/http"
 	"net/url"
 	"regexp"
