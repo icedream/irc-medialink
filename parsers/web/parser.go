@@ -67,6 +67,7 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 	if referer != nil {
 		req.Header.Set("Referer", referer.String())
 	}
+	req.Header.Set("User-Agent", "MediaLink IRC Bot")
 	if resp, err := http.DefaultTransport.RoundTrip(req); err != nil {
 		result.Error = err
 		return
