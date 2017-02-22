@@ -8,6 +8,7 @@ import (
 	"net/url"
 
 	"github.com/mvdan/xurls"
+	"github.com/thoj/go-ircevent"
 	"gopkg.in/alecthomas/kingpin.v2"
 
 	"github.com/icedream/irc-medialink/manager"
@@ -159,7 +160,7 @@ func main() {
 		default:
 		}
 	})
-	if !*noInvite {
+	if !noInvite {
 		conn.AddCallback("INVITE", func(e *irc.Event) {
 			// Is this INVITE not for us?
 			if !strings.EqualFold(e.Arguments[0], conn.GetNick()) {
