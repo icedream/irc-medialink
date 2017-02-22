@@ -31,6 +31,8 @@ func main() {
 	var soundcloudClientId string
 	var soundcloudClientSecret string
 
+	var webEnableImages bool
+
 	var debug bool
 	var noInvite bool
 	var useTLS bool
@@ -59,8 +61,13 @@ func main() {
 
 	// Youtube config
 	kingpin.Flag("youtube-key", "The API key to use to access the YouTube API.").StringVar(&youtubeApiKey)
+
+	// SoundCloud config
 	kingpin.Flag("soundcloud-id", "The SoundCloud ID.").StringVar(&soundcloudClientId)
 	kingpin.Flag("soundcloud-secret", "The SoundCloud secret.").StringVar(&soundcloudClientSecret)
+
+	// Web parser config
+	kingpin.Flag("images", "Enables parsing links of images. Disabled by default for legal reasons.").BoolVar(&webEnableImages)
 
 	kingpin.Parse()
 
@@ -75,25 +82,36 @@ func main() {
 	m := manager.NewManager()
 
 	// Load youtube parser
-	youtubeParser := &youtube.Parser{
-		Config: &youtube.Config{ApiKey: youtubeApiKey},
+	if len(youtubeApiKey) > 0 {
+		youtubeParser := &youtube.Parser{
+			Config: &youtube.Config{ApiKey: youtubeApiKey},
+		}
+		must(m.RegisterParser(youtubeParser))
+	} else {
+		log.Println("No YouTube API key provided, YouTube parsing via API is disabled.")
 	}
-	must(m.RegisterParser(youtubeParser))
 
 	// Load soundcloud parser
-	soundcloudParser := &soundcloud.Parser{
-		Config: &soundcloud.Config{
-			ClientId:     soundcloudClientId,
-			ClientSecret: soundcloudClientSecret,
-		},
+	if len(soundcloudClientId) > 0 && len(soundcloudClientSecret) > 0 {
+		soundcloudParser := &soundcloud.Parser{
+			Config: &soundcloud.Config{
+				ClientId:     soundcloudClientId,
+				ClientSecret: soundcloudClientSecret,
+			},
+		}
+		must(m.RegisterParser(soundcloudParser))
+	} else {
+		log.Println("No SoundCloud client ID or secret provided, SoundCloud parsing via API is disabled.")
 	}
-	must(m.RegisterParser(soundcloudParser))
 
 	// Load wikipedia parser
 	must(m.RegisterParser(new(wikipedia.Parser)))
 
 	// Load web parser
-	must(m.RegisterParser(new(web.Parser)))
+	webParser := &web.Parser{
+		EnableImages: webEnableImages,
+	}
+	must(m.RegisterParser(webParser))
 
 	// IRC
 	conn := m.AntifloodIrcConn(irc.IRC(nickname, ident))
@@ -130,6 +148,8 @@ func main() {
 	conn.AddCallback("JOIN", func(e *irc.Event) {
 		// Is this JOIN not about us?
 		if !strings.EqualFold(e.Nick, conn.GetNick()) {
+			// Save this user's details for a temporary ignore
+			m.NotifyUserJoined(e.Arguments[0], e.Source)
 			return
 		}
 
@@ -198,6 +218,12 @@ func main() {
 			msg := stripIrcFormatting(event.Message())
 
 			log.Printf("<%s @ %s> %s", event.Nick, target, msg)
+
+			// Ignore user if they just joined
+			if shouldIgnore := m.TrackUser(target, event.Source); shouldIgnore {
+				log.Print("This message will be ignored since the user just joined.")
+				return
+			}
 
 			urlStr := xurls.Relaxed.FindString(msg)
 

@@ -17,6 +17,28 @@ func (m *Manager) initAntiflood() {
 	m.cache = cache.New(1*time.Minute, 5*time.Second)
 }
 
+func (m *Manager) TrackUser(target string, source string) (shouldIgnore bool) {
+	key := normalizeUserAntiflood(target, source)
+
+	if _, ok := m.cache.Get(key); ok {
+		// User just joined here recently, ignore them
+		shouldIgnore = true
+	}
+
+	return
+}
+
+func (m *Manager) NotifyUserJoined(target string, source string) {
+	key := normalizeUserAntiflood(target, source)
+
+	// When a user joins, he will be ignored for the first 30 seconds,
+	// enough to prevent parsing links from people who only join to spam their
+	// links immediately
+	if _, exists := m.cache.Get(key); !exists {
+		m.cache.Add(key, nil, 30*time.Second)
+	}
+}
+
 func (m *Manager) TrackUrl(target string, u *url.URL) (shouldIgnore bool) {
 	key := normalizeUrlAntiflood(target, u)
 
@@ -68,6 +90,17 @@ func normalizeTextAntiflood(target, text string) string {
 	s := sha512.New()
 	s.Write([]byte(text))
 	return fmt.Sprintf("TEXT/%s/%X", strings.ToUpper(target), s.Sum([]byte{}))
+}
+
+func normalizeUserAntiflood(target, source string) string {
+	sourceSplitHost := strings.SplitN(source, "@", 2)
+	sourceSplitHostname := strings.Split(sourceSplitHost[1], ".")
+	if len(sourceSplitHostname) > 1 &&
+		strings.EqualFold(sourceSplitHostname[len(sourceSplitHostname)-1], "IP") {
+		sourceSplitHostname[0] = "*"
+	}
+	source = fmt.Sprintf("%s!%s@%s", "*", "*", strings.Join(sourceSplitHostname, "."))
+	return fmt.Sprintf("USER/%s/%s", strings.ToUpper(target), source)
 }
 
 // Proxies several methods of the IRC connection in order to drop repeated messages

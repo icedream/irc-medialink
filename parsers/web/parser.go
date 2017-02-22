@@ -2,7 +2,6 @@ package web
 
 import (
 	"errors"
-	"log"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -33,7 +32,9 @@ const (
 	maxHtmlSize = 8 * 1024
 )
 
-type Parser struct{}
+type Parser struct {
+	EnableImages bool
+}
 
 func (p *Parser) Init() error {
 	return nil
@@ -65,6 +66,7 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 	if referer != nil {
 		req.Header.Set("Referer", referer.String())
 	}
+	req.Header.Set("User-Agent", "MediaLink IRC Bot")
 	if resp, err := http.DefaultTransport.RoundTrip(req); err != nil {
 		result.Error = err
 		return
@@ -119,23 +121,28 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 				result.Information[0]["Title"] = noTitleStr
 			}
 		case "image/png", "image/jpeg", "image/gif":
+			if p.EnableImages {
 
-			// No need to limit the reader to a specific size here as
-			// image.DecodeConfig only reads as much as needed anyways.
-			if m, imgType, err := image.DecodeConfig(resp.Body); err != nil {
-				result.UserError = ErrCorruptedImage
-			} else {
-				info := map[string]interface{}{
-					"IsUpload":  true,
-					"ImageSize": image.Point{X: m.Width, Y: m.Height},
-					"ImageType": strings.ToUpper(imgType),
+				// No need to limit the reader to a specific size here as
+				// image.DecodeConfig only reads as much as needed anyways.
+				if m, imgType, err := image.DecodeConfig(resp.Body); err != nil {
+					result.UserError = ErrCorruptedImage
+				} else {
+					info := map[string]interface{}{
+						"IsUpload":  true,
+						"ImageSize": image.Point{X: m.Width, Y: m.Height},
+						"ImageType": strings.ToUpper(imgType),
+						"Title":     u.Path[strings.LastIndex(u.Path, "/")+1:],
+					}
+					if resp.ContentLength > 0 {
+						info["Size"] = uint64(resp.ContentLength)
+					}
+					result.Information = []map[string]interface{}{info}
 				}
-				if resp.ContentLength > 0 {
-					info["Size"] = uint64(resp.ContentLength)
-				}
-				result.Information = []map[string]interface{}{info}
-				log.Printf("Got through: %+v!", info)
+				break
 			}
+
+			fallthrough
 		default:
 			// TODO - Implement generic head info?
 			result.Ignored = true
