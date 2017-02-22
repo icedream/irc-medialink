@@ -8,7 +8,6 @@ import (
 	"net/url"
 
 	"github.com/mvdan/xurls"
-	"github.com/thoj/go-ircevent"
 	"gopkg.in/alecthomas/kingpin.v2"
 
 	"github.com/icedream/irc-medialink/manager"
@@ -33,6 +32,7 @@ func main() {
 	var soundcloudClientSecret string
 
 	var debug bool
+	var noInvite bool
 	var useTLS bool
 	var server string
 	var password string
@@ -48,6 +48,7 @@ func main() {
 	kingpin.Flag("nick", "The nickname.").Short('n').StringVar(&nickname)
 	kingpin.Flag("ident", "The ident.").Short('i').StringVar(&ident)
 	kingpin.Flag("debug", "Enables debug mode.").Short('d').BoolVar(&debug)
+	kingpin.Flag("no-invite", "Disables auto-join on invite.").BoolVar(&noInvite)
 	kingpin.Flag("tls", "Use TLS.").BoolVar(&useTLS)
 	kingpin.Flag("server", "The server to connect to.").Short('s').StringVar(&server)
 	kingpin.Flag("password", "The password to use for logging into the IRC server.").Short('p').StringVar(&password)
@@ -138,44 +139,46 @@ func main() {
 		default:
 		}
 	})
-	conn.AddCallback("INVITE", func(e *irc.Event) {
-		// Is this INVITE not for us?
-		if !strings.EqualFold(e.Arguments[0], conn.GetNick()) {
-			return
-		}
-
-		// Asynchronous notification
-		select {
-		case inviteChan <- e.Arguments[1]:
-		default:
-		}
-
-		// We have been invited, autojoin!
-		go func(sourceNick string, targetChannel string) {
-		joinWaitLoop:
-			for {
-				select {
-				case channel := <-joinChan:
-					if strings.EqualFold(channel, targetChannel) {
-						// TODO - Thanks message
-						time.Sleep(1 * time.Second)
-						conn.Privmsgf(targetChannel, "Thanks for inviting me, %s! I am %s, the friendly bot that shows information about links posted in this channel. I hope I can be of great help for everyone here in %s! :)", sourceNick, conn.GetNick(), targetChannel)
-						time.Sleep(2 * time.Second)
-						conn.Privmsg(targetChannel, "If you ever run into trouble with me (or find any bugs), please use the channel #MediaLink for contact on this IRC.")
-						break joinWaitLoop
-					}
-				case channel := <-inviteChan:
-					if strings.EqualFold(channel, targetChannel) {
-						break joinWaitLoop
-					}
-				case <-time.After(time.Minute):
-					log.Printf("WARNING: Timed out waiting for us to join %s as we got invited", targetChannel)
-					break joinWaitLoop
-				}
+	if !*noInvite {
+		conn.AddCallback("INVITE", func(e *irc.Event) {
+			// Is this INVITE not for us?
+			if !strings.EqualFold(e.Arguments[0], conn.GetNick()) {
+				return
 			}
-		}(e.Nick, e.Arguments[1])
-		conn.Join(e.Arguments[1])
-	})
+
+			// Asynchronous notification
+			select {
+			case inviteChan <- e.Arguments[1]:
+			default:
+			}
+
+			// We have been invited, autojoin!
+			go func(sourceNick string, targetChannel string) {
+			joinWaitLoop:
+				for {
+					select {
+					case channel := <-joinChan:
+						if strings.EqualFold(channel, targetChannel) {
+							// TODO - Thanks message
+							time.Sleep(1 * time.Second)
+							conn.Privmsgf(targetChannel, "Thanks for inviting me, %s! I am %s, the friendly bot that shows information about links posted in this channel. I hope I can be of great help for everyone here in %s! :)", sourceNick, conn.GetNick(), targetChannel)
+							time.Sleep(2 * time.Second)
+							conn.Privmsg(targetChannel, "If you ever run into trouble with me (or find any bugs), please use the channel #MediaLink for contact on this IRC.")
+							break joinWaitLoop
+						}
+					case channel := <-inviteChan:
+						if strings.EqualFold(channel, targetChannel) {
+							break joinWaitLoop
+						}
+					case <-time.After(time.Minute):
+						log.Printf("WARNING: Timed out waiting for us to join %s as we got invited", targetChannel)
+						break joinWaitLoop
+					}
+				}
+			}(e.Nick, e.Arguments[1])
+			conn.Join(e.Arguments[1])
+		})
+	}
 	conn.AddCallback("PRIVMSG", func(e *irc.Event) {
 		go func(event *irc.Event) {
 			//sender := event.Nick
