@@ -7,9 +7,9 @@ import (
 
 	"net/url"
 
-	"github.com/mvdan/xurls"
 	"github.com/thoj/go-ircevent"
 	"gopkg.in/alecthomas/kingpin.v2"
+	"mvdan.cc/xurls"
 
 	"github.com/icedream/irc-medialink/manager"
 	"github.com/icedream/irc-medialink/parsers/soundcloud"
@@ -260,7 +260,7 @@ func main() {
 				return
 			}
 
-			urlStr := xurls.Relaxed.FindString(msg)
+			urlStr := xurls.Relaxed().FindString(msg)
 
 			switch {
 			case !isChannel:
