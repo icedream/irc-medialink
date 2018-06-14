@@ -1,13 +1,16 @@
-FROM golang:1.7
+FROM golang:1.10-alpine AS builder
 
-RUN mkdir -p /go/src/app
-WORKDIR /go/src/app
+ARG GO_ROOT_IMPORT_PATH=github.com/icedream/irc-medialink
 
-COPY . /go/src/app
-RUN \
-	mkdir -p "$GOPATH/src/github.com/icedream" &&\
-	ln -sf /go/src/app "$GOPATH/src/github.com/icedream/irc-medialink" &&\
-	go-wrapper download &&\
-	go-wrapper install
+ENV CGO_ENABLED 0
 
-CMD ["go-wrapper", "run"]
+COPY . "$GOPATH/src/$GO_ROOT_IMPORT_PATH"
+RUN go get -v -d "$GO_ROOT_IMPORT_PATH"
+RUN go build -ldflags '-extldflags "-static"' -o /irc-medialink "$GO_ROOT_IMPORT_PATH"
+
+###
+
+FROM scratch
+
+COPY --from=builder /irc-medialink /
+ENTRYPOINT ["/irc-medialink"]
