@@ -154,10 +154,44 @@ func main() {
 			return
 		}
 
+		resetChannelModes(e.Arguments[0])
+
 		// Asynchronous notification
 		select {
 		case joinChan <- e.Arguments[0]:
 		default:
+		}
+	})
+	conn.AddCallback("PART", func(e *irc.Event) {
+		// Is this PART not about us?
+		if !strings.EqualFold(e.Nick, conn.GetNick()) {
+			return
+		}
+
+		deleteChannelModes(e.Arguments[0])
+	})
+	conn.AddCallback("MODE", func(e *irc.Event) {
+		// Is this MODE for a channel?
+		isChannel := strings.HasPrefix(e.Arguments[0], "#")
+
+		if !isChannel {
+			return
+		}
+
+		add := true
+		for _, mode := range e.Arguments[1] {
+			switch mode {
+			case '+':
+				add = true
+			case '-':
+				add = false
+			default:
+				if add {
+					setChannelMode(e.Arguments[0], mode)
+				} else {
+					unsetChannelMode(e.Arguments[0], mode)
+				}
+			}
 		}
 	})
 	if !noInvite {
@@ -258,6 +292,7 @@ func main() {
 					if s, err := tplString("error", result.UserError); err != nil {
 						log.Print(err)
 					} else {
+						s = stripIrcFormattingIfChannelBlocksColors(target, s)
 						conn.Privmsg(target, s)
 					}
 				}
@@ -266,6 +301,7 @@ func main() {
 						if s, err := tplString("link-info", i); err != nil {
 							log.Print(err)
 						} else {
+							s = stripIrcFormattingIfChannelBlocksColors(target, s)
 							conn.Privmsg(target, s)
 						}
 					}
