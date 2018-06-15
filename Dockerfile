@@ -15,7 +15,12 @@ RUN cp *.tpl /
 
 ###
 
-FROM scratch
+FROM alpine:3.7
 
-COPY --from=builder /irc-medialink /*.tpl /
-ENTRYPOINT ["/irc-medialink"]
+RUN apk add --no-cache ca-certificates
+
+WORKDIR /app
+
+COPY --from=builder /irc-medialink /usr/local/bin
+COPY --from=builder /*.tpl .
+ENTRYPOINT ["irc-medialink"]
