@@ -29,7 +29,7 @@ var (
 const (
 	runeHash    = '#'
 	noTitleStr  = "(no title)"
-	maxHtmlSize = 8 * 1024
+	maxHtmlSize = 32 * 1024
 )
 
 type Parser struct {
