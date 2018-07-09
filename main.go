@@ -154,7 +154,9 @@ func main() {
 			return
 		}
 
+		// Request channel modes
 		resetChannelModes(e.Arguments[0])
+		conn.Mode(e.Arguments[0])
 
 		// Asynchronous notification
 		select {
