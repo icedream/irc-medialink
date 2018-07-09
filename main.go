@@ -154,8 +154,6 @@ func main() {
 			return
 		}
 
-		resetChannelModes(e.Arguments[0])
-
 		// Asynchronous notification
 		select {
 		case joinChan <- e.Arguments[0]:
