@@ -7,7 +7,7 @@ import (
 
 	"net/url"
 
-	"github.com/thoj/go-ircevent"
+	irc "github.com/thoj/go-ircevent"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"mvdan.cc/xurls"
 
@@ -262,7 +262,7 @@ func main() {
 				return
 			}
 
-			urlStr := xurls.Relaxed().FindString(msg)
+			urlStr := xurls.Relaxed.FindString(msg)
 
 			switch {
 			case !isChannel:
