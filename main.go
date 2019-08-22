@@ -27,9 +27,9 @@ func must(err error) {
 }
 
 func main() {
-	var youtubeApiKey string
+	var youtubeAPIKey string
 
-	var soundcloudClientId string
+	var soundcloudClientID string
 	var soundcloudClientSecret string
 
 	var webEnableImages bool
@@ -61,10 +61,10 @@ func main() {
 	kingpin.Flag("channels", "Channels to join.").Short('c').StringsVar(&channels)
 
 	// Youtube config
-	kingpin.Flag("youtube-key", "The API key to use to access the YouTube API.").StringVar(&youtubeApiKey)
+	kingpin.Flag("youtube-key", "The API key to use to access the YouTube API.").StringVar(&youtubeAPIKey)
 
 	// SoundCloud config
-	kingpin.Flag("soundcloud-id", "The SoundCloud ID.").StringVar(&soundcloudClientId)
+	kingpin.Flag("soundcloud-id", "The SoundCloud ID.").StringVar(&soundcloudClientID)
 	kingpin.Flag("soundcloud-secret", "The SoundCloud secret.").StringVar(&soundcloudClientSecret)
 
 	// Web parser config
@@ -83,9 +83,9 @@ func main() {
 	m := manager.NewManager()
 
 	// Load youtube parser
-	if len(youtubeApiKey) > 0 {
+	if len(youtubeAPIKey) > 0 {
 		youtubeParser := &youtube.Parser{
-			Config: &youtube.Config{ApiKey: youtubeApiKey},
+			Config: &youtube.Config{ApiKey: youtubeAPIKey},
 		}
 		must(m.RegisterParser(youtubeParser))
 	} else {
@@ -93,10 +93,10 @@ func main() {
 	}
 
 	// Load soundcloud parser
-	if len(soundcloudClientId) > 0 && len(soundcloudClientSecret) > 0 {
+	if len(soundcloudClientID) > 0 && len(soundcloudClientSecret) > 0 {
 		soundcloudParser := &soundcloud.Parser{
 			Config: &soundcloud.Config{
-				ClientId:     soundcloudClientId,
+				ClientId:     soundcloudClientID,
 				ClientSecret: soundcloudClientSecret,
 			},
 		}

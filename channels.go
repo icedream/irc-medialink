@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	ChannelMode_ColorBlock = "c"
+	colorBlock = "c"
 )
 
 var channelModes = map[string]string{}
