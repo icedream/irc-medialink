@@ -5,8 +5,8 @@ RUN apk add --no-cache \
 
 ENV CGO_ENABLED 0
 
-COPY . "$GOPATH/src/$GO_ROOT_IMPORT_PATH"
-WORKDIR "$GOPATH/src/$GO_ROOT_IMPORT_PATH"
+WORKDIR /usr/src/medialink
+COPY . .
 RUN go build -ldflags '-extldflags "-static"' -o /irc-medialink
 RUN cp *.tpl /
 
