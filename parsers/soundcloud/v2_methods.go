@@ -31,7 +31,7 @@ var (
 func (p *Parser) v2url(path string, urlvalues url.Values) *url.URL {
 	u := &url.URL{
 		Scheme:   "https",
-		Host:     "api-v2.soundcloud.com",
+		Host:     "api.soundcloud.com",
 		RawQuery: urlvalues.Encode(),
 		Path:     path,
 	}
