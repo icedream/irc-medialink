@@ -125,7 +125,13 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 	switch idType {
 	case youtubeIdType_Video:
 		// Get YouTube video info
-		list, err := p.Service.Videos.List("contentDetails,id,liveStreamingDetails,snippet,statistics").Id(id).Do()
+		list, err := p.Service.Videos.List([]string{
+			"contentDetails",
+			"id",
+			"liveStreamingDetails",
+			"snippet",
+			"statistics",
+		}).Id(id).Do()
 		if err != nil {
 			result.Error = err
 			return
@@ -188,7 +194,11 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 		}
 	case youtubeIdType_ChannelId, youtubeIdType_ChannelName:
 		// Get YouTube channel info
-		cl := p.Service.Channels.List("id,snippet,statistics")
+		cl := p.Service.Channels.List([]string{
+			"id",
+			"snippet",
+			"statistics",
+		})
 		if idType == youtubeIdType_ChannelName {
 			cl = cl.ForUsername(id)
 		} else {
@@ -227,7 +237,10 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 		}
 	case youtubeIdType_Playlist:
 		// Get YouTube channel info
-		list, err := p.Service.Playlists.List("id,snippet").Id(id).Do()
+		list, err := p.Service.Playlists.List([]string{
+			"id",
+			"snippet",
+		}).Id(id).Do()
 		if err != nil {
 			result.Error = err
 			return
