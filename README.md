@@ -60,9 +60,9 @@ services:
 
 ## Support
 
-This bot is officially tested and running on the LibraIRC IRC network (irc.librairc.net) though also being able to run on other IRC networks.
+This bot is officially tested and running on the Rizon IRC network (irc.rizon.net) though also being able to run on other IRC networks.
 
-For support on LibraIRC please use the channel #MediaLink there to get in contact with Icedream.
+For support on Rizon IRC please use the channel #MediaLink there to get in contact with Icedream.
 
 ## License
 
