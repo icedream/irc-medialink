@@ -13,6 +13,7 @@ import (
 
 	"github.com/icedream/irc-medialink/manager"
 	"github.com/icedream/irc-medialink/parsers/soundcloud"
+	"github.com/icedream/irc-medialink/parsers/twitter"
 	"github.com/icedream/irc-medialink/parsers/web"
 	"github.com/icedream/irc-medialink/parsers/wikipedia"
 	"github.com/icedream/irc-medialink/parsers/youtube"
@@ -31,6 +32,9 @@ func main() {
 
 	var soundcloudClientID string
 	var soundcloudClientSecret string
+
+	var twitterClientID string
+	var twitterClientSecret string
 
 	var webEnableImages bool
 
@@ -66,6 +70,10 @@ func main() {
 	// SoundCloud config
 	kingpin.Flag("soundcloud-id", "The SoundCloud ID.").StringVar(&soundcloudClientID)
 	kingpin.Flag("soundcloud-secret", "The SoundCloud secret.").StringVar(&soundcloudClientSecret)
+
+	// Twitter config
+	kingpin.Flag("twitter-id", "The Twitter ID.").StringVar(&twitterClientID)
+	kingpin.Flag("twitter-secret", "The Twitter secret.").StringVar(&twitterClientSecret)
 
 	// Web parser config
 	kingpin.Flag("images", "Enables parsing links of images. Disabled by default for legal reasons.").BoolVar(&webEnableImages)
@@ -103,6 +111,19 @@ func main() {
 		must(m.RegisterParser(soundcloudParser))
 	} else {
 		log.Println("No SoundCloud client ID or secret provided, SoundCloud parsing via API is disabled.")
+	}
+
+	// Load twitter parser
+	if len(twitterClientID) > 0 && len(twitterClientSecret) > 0 {
+		twitterParser := &twitter.Parser{
+			Config: &twitter.Config{
+				ClientID:     twitterClientID,
+				ClientSecret: twitterClientSecret,
+			},
+		}
+		must(m.RegisterParser(twitterParser))
+	} else {
+		log.Println("No Twitter client ID or secret provided, Twitter parsing via API is disabled.")
 	}
 
 	// Load wikipedia parser

@@ -9,6 +9,7 @@ require (
 	github.com/alecthomas/units v0.0.0-20190924025748-f65c72e2690d // indirect
 	github.com/channelmeter/iso8601duration v0.0.0-20150204201828-8da3af7a2a61 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/dghubble/go-twitter v0.0.0-20190719072343-39e5462e111f
 	github.com/dustin/go-humanize v1.0.0
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/kr/pretty v0.1.0 // indirect
@@ -23,6 +24,7 @@ require (
 	github.com/yanatan16/golang-soundcloud v0.0.0-20161013200625-a182dd459b66
 	github.com/yhat/scrape v0.0.0-20161128144610-24b7890b0945
 	golang.org/x/net v0.0.0-20200707034311-ab3426394381
+	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/sys v0.0.0-20200625212154-ddb9806d33ae // indirect
 	google.golang.org/api v0.29.0
 	google.golang.org/genproto v0.0.0-20200715011427-11fb19a81f2c // indirect
