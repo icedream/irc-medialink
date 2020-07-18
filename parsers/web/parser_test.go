@@ -61,7 +61,8 @@ func Test_Parser_Parse_IRCBotScience_LongHeaders(t *testing.T) {
 	}
 
 	t.Logf("Result: %+v", result)
-	assert.True(t, result.Ignored)
+	// It just shouldn't panic. Erroring out is fine.
+	assert.True(t, result.Ignored || result.Error != nil, result.Ignored)
 }
 
 func Test_Parser_Parse_IRCBotScience_BigHeader(t *testing.T) {
@@ -76,7 +77,8 @@ func Test_Parser_Parse_IRCBotScience_BigHeader(t *testing.T) {
 	}
 
 	t.Logf("Result: %+v", result)
-	assert.True(t, result.Ignored)
+	// It just shouldn't panic. Erroring out is fine.
+	assert.True(t, result.Ignored || result.Error != nil)
 }
 
 func Test_Parser_Parse_IRCBotScience_Large(t *testing.T) {
