@@ -12,16 +12,20 @@ import (
 	"github.com/icedream/irc-medialink/parsers"
 )
 
+// Parser implements parsing of Wikipedia URLs.
 type Parser struct{}
 
+// Name returns the parser's descriptive name.
 func (p *Parser) Name() string {
 	return "Wikipedia"
 }
 
+// Init initializes the parser.
 func (p *Parser) Init() error {
 	return nil
 }
 
+// Parse parses the given URL.
 func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult) {
 	if !(strings.EqualFold(u.Scheme, "http") ||
 		strings.EqualFold(u.Scheme, "https")) ||
@@ -62,7 +66,7 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 		}
 
 		result.Information = []map[string]interface{}{
-			map[string]interface{}{
+			{
 				"Header":      "\x031,0Wikipedia\x03",
 				"Description": prepareSummary(data.Title, data.Extract),
 			},

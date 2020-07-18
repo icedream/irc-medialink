@@ -1,7 +1,5 @@
 package soundcloud
 
-import ()
-
 type v2Group struct {
 	v2Object
 	ArtworkURL       string     `json:"artwork_url"`

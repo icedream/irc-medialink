@@ -93,7 +93,7 @@ func main() {
 	// Load youtube parser
 	if len(youtubeAPIKey) > 0 {
 		youtubeParser := &youtube.Parser{
-			Config: &youtube.Config{ApiKey: youtubeAPIKey},
+			Config: &youtube.Config{APIKey: youtubeAPIKey},
 		}
 		must(m.RegisterParser(youtubeParser))
 	} else {
@@ -104,7 +104,7 @@ func main() {
 	if len(soundcloudClientID) > 0 && len(soundcloudClientSecret) > 0 {
 		soundcloudParser := &soundcloud.Parser{
 			Config: &soundcloud.Config{
-				ClientId:     soundcloudClientID,
+				ClientID:     soundcloudClientID,
 				ClientSecret: soundcloudClientSecret,
 			},
 		}

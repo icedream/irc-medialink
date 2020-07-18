@@ -25,6 +25,7 @@ const (
 )
 
 var (
+	// ErrUnsupportedKind is returned if the parser can't detect what type of reference a SoundCloud URL is pointing to.
 	ErrUnsupportedKind = errors.New("Unsupported kind")
 )
 
@@ -36,7 +37,7 @@ func (p *Parser) v2url(path string, urlvalues url.Values) *url.URL {
 		Path:     path,
 	}
 	q := u.Query()
-	q.Set("client_id", p.Config.ClientId)
+	q.Set("client_id", p.Config.ClientID)
 	q.Set("app_version", "0.0") // TODO - Versioning
 	u.RawQuery = q.Encode()
 	log.Printf("SoundCloud parser: v2url: %s", u.String())

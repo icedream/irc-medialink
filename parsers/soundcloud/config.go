@@ -1,6 +1,7 @@
 package soundcloud
 
+// Config contains the configurable fields for the SoundCloud parser.
 type Config struct {
-	ClientId     string
+	ClientID     string
 	ClientSecret string
 }

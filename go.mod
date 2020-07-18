@@ -11,8 +11,6 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dghubble/go-twitter v0.0.0-20190719072343-39e5462e111f
 	github.com/dustin/go-humanize v1.0.0
-	github.com/hashicorp/golang-lru v0.5.4 // indirect
-	github.com/kr/pretty v0.1.0 // indirect
 	github.com/mvdan/xurls v1.1.0 // indirect
 	github.com/neurosnap/sentences v1.0.6 // indirect
 	github.com/onsi/ginkgo v1.9.0 // indirect
@@ -29,7 +27,6 @@ require (
 	google.golang.org/api v0.29.0
 	google.golang.org/genproto v0.0.0-20200715011427-11fb19a81f2c // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
-	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
 	gopkg.in/neurosnap/sentences.v1 v1.0.6
 	gopkg.in/yaml.v2 v2.2.2
 	mvdan.cc/xurls v1.1.0

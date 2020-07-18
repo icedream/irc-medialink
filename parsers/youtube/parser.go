@@ -16,34 +16,36 @@ import (
 )
 
 const (
-	youtubeIdType_None youtubeIdType = iota
-	youtubeIdType_Video
-	youtubeIdType_ChannelName
-	youtubeIdType_ChannelId
-	youtubeIdType_Playlist
+	nonYouTubeReference youtubeReference = iota
+	videoReference
+	channelNameReference
+	channelIDReference
+	playlistReference
 
 	header = "\x0301,00You\x0300,04Tube"
 )
 
 var (
-	ErrNotFound = errors.New("Not found.")
+	// ErrNotFound is returned when a YouTube URL does not point at anything the API can find.
+	ErrNotFound = errors.New("not found")
 )
 
-type youtubeIdType uint8
+type youtubeReference uint8
 
+// Parser implements parsing of YouTube URLs via API.
 type Parser struct {
 	Config  *Config
 	Service *youtube.Service
 }
 
-func getYouTubeId(uri *url.URL, followRedirects int) (youtubeIdType, string) {
+func parseYouTubeURL(uri *url.URL, followRedirects int) (youtubeReference, string) {
 	u := &(*uri)
 	u.Scheme = strings.ToLower(u.Scheme)
 	u.Host = strings.ToLower(u.Host)
 
 	// Must be an HTTP URL
 	if u.Scheme != "http" && u.Scheme != "https" {
-		return youtubeIdType_None, ""
+		return nonYouTubeReference, ""
 	}
 
 	// Remove www. prefix from hostname
@@ -55,75 +57,78 @@ func getYouTubeId(uri *url.URL, followRedirects int) (youtubeIdType, string) {
 	case "youtu.be":
 		// http://youtu.be/{id}
 		if s, err := url.QueryUnescape(strings.TrimLeft(u.Path, "/")); err == nil {
-			return youtubeIdType_Video, s
+			return videoReference, s
 		}
 	case "youtube.com":
 		if u.Path == "/watch" {
 			// http://youtube.com/watch?v={id}
-			return youtubeIdType_Video, u.Query().Get("v")
+			return videoReference, u.Query().Get("v")
 		} else if strings.HasPrefix(u.Path, "/channel/") {
 			// https://www.youtube.com/channel/{channelid}
-			return youtubeIdType_ChannelId, strings.Trim(u.Path[9:], "/")
+			return channelIDReference, strings.Trim(u.Path[9:], "/")
 		} else if strings.HasPrefix(u.Path, "/c/") {
 			// http://youtube.com/c/{channelname}
-			return youtubeIdType_ChannelName, strings.Trim(u.Path[3:], "/")
+			return channelNameReference, strings.Trim(u.Path[3:], "/")
 		} else if strings.HasPrefix(u.Path, "/user/") {
 			// http://youtube.com/user/{channelname}
-			return youtubeIdType_ChannelName, strings.Trim(u.Path[6:], "/")
+			return channelNameReference, strings.Trim(u.Path[6:], "/")
 		} else if strings.HasPrefix(u.Path, "/playlist") {
 			// https://www.youtube.com/playlist?list=PLq34c5GJGiJJlrG9-ByMbuQkTvaFtIflO
-			return youtubeIdType_Playlist, u.Query().Get("list")
+			return playlistReference, u.Query().Get("list")
 		} else if followRedirects > 0 && len(u.Path) > 1 && !strings.Contains(u.Path[1:], "/") {
 			// Maybe https://youtube.com/{channelname}.
 			// Does this actually redirect to a channel?
 			req, err := http.NewRequest("HEAD", u.String(), nil)
 			if err != nil {
 				log.Printf("Failed to create HEAD request from %s: %s", u, err)
-				return youtubeIdType_None, ""
+				return nonYouTubeReference, ""
 			}
 			resp, err := http.DefaultTransport.RoundTrip(req)
 			if err != nil {
 				log.Printf("Failed to check for channel from %s: %s", u, err)
-				return youtubeIdType_None, ""
+				return nonYouTubeReference, ""
 			}
 			if resp.StatusCode >= 300 && resp.StatusCode < 400 {
 				if lu, err := resp.Location(); err == nil && lu != nil {
-					return getYouTubeId(lu, followRedirects-1)
+					return parseYouTubeURL(lu, followRedirects-1)
 				}
 			}
 		}
 	}
 
-	return youtubeIdType_None, ""
+	return nonYouTubeReference, ""
 }
 
+// Init initializes the parser.
 func (p *Parser) Init() error {
 	// youtube api
 	client := &http.Client{
-		Transport: &transport.APIKey{Key: p.Config.ApiKey},
+		Transport: &transport.APIKey{Key: p.Config.APIKey},
 	}
-	if srv, err := youtube.New(client); err != nil {
+	srv, err := youtube.New(client)
+	if err != nil {
 		return err
-	} else {
-		p.Service = srv
 	}
+	p.Service = srv
 	return nil
 }
 
+// Name returns the parser's descriptive name.
 func (p *Parser) Name() string {
 	return "YouTube"
 }
 
+// Parse parses the given URL.
 func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult) {
 	// Parse YouTube URL
-	idType, id := getYouTubeId(u, 2)
-	if idType == youtubeIdType_None {
+	idType, id := parseYouTubeURL(u, 2)
+	if idType == nonYouTubeReference {
 		result.Ignored = true
 		return // nothing relevant found in this URL
 	}
 
 	switch idType {
-	case youtubeIdType_Video:
+	case videoReference:
 		// Get YouTube video info
 		list, err := p.Service.Videos.List([]string{
 			"contentDetails",
@@ -192,14 +197,14 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 			r["Header"] = header
 			result.Information = append(result.Information, r)
 		}
-	case youtubeIdType_ChannelId, youtubeIdType_ChannelName:
+	case channelIDReference, channelNameReference:
 		// Get YouTube channel info
 		cl := p.Service.Channels.List([]string{
 			"id",
 			"snippet",
 			"statistics",
 		})
-		if idType == youtubeIdType_ChannelName {
+		if idType == channelNameReference {
 			cl = cl.ForUsername(id)
 		} else {
 			cl = cl.Id(id)
@@ -235,7 +240,7 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 			}
 			result.Information = append(result.Information, r)
 		}
-	case youtubeIdType_Playlist:
+	case playlistReference:
 		// Get YouTube channel info
 		list, err := p.Service.Playlists.List([]string{
 			"id",

@@ -56,8 +56,8 @@ func Test_Parser_Parse_IRCBotScience_LongHeaders(t *testing.T) {
 		Host:   "irc-bot-science.clsr.net",
 		Path:   "longheaders",
 	}, nil)
-	for result.FollowUrl != nil {
-		result = parseWithTimeout(p, t, 5*time.Second, result.FollowUrl, nil)
+	for result.FollowURL != nil {
+		result = parseWithTimeout(p, t, 5*time.Second, result.FollowURL, nil)
 	}
 
 	t.Logf("Result: %+v", result)
@@ -71,8 +71,8 @@ func Test_Parser_Parse_IRCBotScience_BigHeader(t *testing.T) {
 		Host:   "irc-bot-science.clsr.net",
 		Path:   "bigheader",
 	}, nil)
-	for result.FollowUrl != nil {
-		result = parseWithTimeout(p, t, 5*time.Second, result.FollowUrl, nil)
+	for result.FollowURL != nil {
+		result = parseWithTimeout(p, t, 5*time.Second, result.FollowURL, nil)
 	}
 
 	t.Logf("Result: %+v", result)
@@ -87,8 +87,8 @@ func Test_Parser_Parse_IRCBotScience_Large(t *testing.T) {
 		Host:   "irc-bot-science.clsr.net",
 		Path:   "large",
 	}, nil)
-	for result.FollowUrl != nil {
-		result = parseWithTimeout(p, t, 5*time.Second, result.FollowUrl, nil)
+	for result.FollowURL != nil {
+		result = parseWithTimeout(p, t, 5*time.Second, result.FollowURL, nil)
 	}
 
 	t.Logf("Result: %+v", result)
@@ -102,29 +102,29 @@ func Test_Parser_Parse_IRCBotScience_Large(t *testing.T) {
 
 func Test_Parser_Parse_IRCBotScience_Redirect(t *testing.T) {
 	p := mustNewParser(t)
-	originalUrl := &url.URL{
+	originalURL := &url.URL{
 		Scheme: "https",
 		Host:   "irc-bot-science.clsr.net",
 		Path:   "redirect",
 	}
-	result := p.Parse(originalUrl, nil)
+	result := p.Parse(originalURL, nil)
 
 	t.Logf("Result: %+v", result)
 	assert.False(t, result.Ignored)
 	assert.Nil(t, result.Error)
 	assert.Nil(t, result.UserError)
-	assert.NotNil(t, result.FollowUrl)
-	assert.Equal(t, originalUrl.String(), result.FollowUrl.String())
+	assert.NotNil(t, result.FollowURL)
+	assert.Equal(t, originalURL.String(), result.FollowURL.String())
 }
 
 func Test_Parser_Parse_Hash(t *testing.T) {
 	p := mustNewParser(t)
-	originalUrl := &url.URL{
+	originalURL := &url.URL{
 		Scheme: "https",
 		Host:   "www.google.com",
 		Path:   "/#invalid",
 	}
-	result := p.Parse(originalUrl, nil)
+	result := p.Parse(originalURL, nil)
 
 	t.Logf("Result: %+v", result)
 	assert.False(t, result.Ignored)

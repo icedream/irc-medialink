@@ -22,14 +22,17 @@ const (
 )
 
 var (
-	ErrNotFound = errors.New("Not found.")
+	// ErrNotFound is returned when a URL points to something that the Twitter API can not find.
+	ErrNotFound = errors.New("not found")
 )
 
+// Parser implements parsing of Twitter URLs.
 type Parser struct {
 	Config *Config
 	Client *twitter.Client
 }
 
+// Init initializes this parser.
 func (p *Parser) Init() error {
 	config := &clientcredentials.Config{
 		ClientID:     p.Config.ClientID,
@@ -41,26 +44,27 @@ func (p *Parser) Init() error {
 	return nil
 }
 
+// Name returns the parser's descriptive name.
 func (p *Parser) Name() string {
 	return "Twitter"
 }
 
-type twitterUrlType byte
+type twitterReferenceType byte
 
 const (
-	twitterUrlType_None twitterUrlType = iota
-	twitterUrlType_Tweet
-	twitterUrlType_Profile
+	nonTwitterReference twitterReferenceType = iota
+	tweetReference
+	profileReference
 )
 
-func getTwitterId(uri *url.URL) (twitterUrlType, string) {
+func parseTwitterURL(uri *url.URL) (twitterReferenceType, string) {
 	u := &(*uri)
 	u.Scheme = strings.ToLower(u.Scheme)
 	u.Host = strings.ToLower(u.Host)
 
 	// Must be an HTTP URL
 	if u.Scheme != "http" && u.Scheme != "https" {
-		return twitterUrlType_None, ""
+		return nonTwitterReference, ""
 	}
 
 	// Remove www. prefix from hostname
@@ -80,27 +84,28 @@ func getTwitterId(uri *url.URL) (twitterUrlType, string) {
 	case "twitter.com":
 		parts := strings.Split(strings.TrimPrefix(u.Path, "/"), "/")
 		if len(parts) == 1 { // /:username
-			return twitterUrlType_Profile, parts[0]
+			return profileReference, parts[0]
 		}
 		if len(parts) > 1 && parts[1] == "status" { // /:username/status/:id[/:extra]
 			// TODO - handle explicit photo linking
-			return twitterUrlType_Tweet, parts[2]
+			return tweetReference, parts[2]
 		}
 	}
 
-	return twitterUrlType_None, ""
+	return nonTwitterReference, ""
 }
 
+// Parse parses the given URL.
 func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult) {
 	// Parse Twitter URL
-	idType, id := getTwitterId(u)
-	if idType == twitterUrlType_None {
+	idType, id := parseTwitterURL(u)
+	if idType == nonTwitterReference {
 		result.Ignored = true
 		return // nothing relevant found in this URL
 	}
 
 	switch idType {
-	case twitterUrlType_Tweet:
+	case tweetReference:
 		id, err := strconv.ParseInt(id, 10, 64)
 		if err != nil {
 			result.Error = err
@@ -149,7 +154,7 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 		r["Header"] = header
 		result.Information = append(result.Information, r)
 
-	case twitterUrlType_Profile:
+	case profileReference:
 		user, resp, err := p.Client.Users.Show(&twitter.UserShowParams{
 			ScreenName: id,
 		})
@@ -168,7 +173,7 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 
 		// Collect information
 		result.Information = []map[string]interface{}{
-			map[string]interface{}{
+			{
 				"Header":      header,
 				"IsProfile":   true,
 				"Title":       user.ScreenName,

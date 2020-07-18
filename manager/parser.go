@@ -10,15 +10,18 @@ import (
 )
 
 var (
-	ErrAlreadyLoaded = errors.New("Already loaded.")
+	// ErrAlreadyLoaded is returned when a parser attempting to register is already found to be loaded with the same ID.
+	ErrAlreadyLoaded = errors.New("already loaded")
 )
 
+// Parser describes the core functionality of any parser used to analyze URLs.
 type Parser interface {
 	Init() error
 	Name() string
 	Parse(u *url.URL, referer *url.URL) parsers.ParseResult
 }
 
+// GetParsers returns a slice of currently loaded parsers.
 func (m *Manager) GetParsers() []Parser {
 	m.stateLock.RLock()
 	defer m.stateLock.RUnlock()
@@ -28,6 +31,7 @@ func (m *Manager) GetParsers() []Parser {
 	return result
 }
 
+// RegisterParser is called by a parser package to register itself automatically.
 func (m *Manager) RegisterParser(parser Parser) error {
 	m.stateLock.Lock()
 	defer m.stateLock.Unlock()
@@ -52,14 +56,15 @@ func (m *Manager) RegisterParser(parser Parser) error {
 	return nil
 }
 
-func (m *Manager) Parse(currentUrl *url.URL) (string, parsers.ParseResult) {
+// Parse goes through all loaded parsers in order to analyze a given URL.
+func (m *Manager) Parse(currentURL *url.URL) (string, parsers.ParseResult) {
 	var referer *url.URL
 	attempt := 0
 followLoop:
-	for currentUrl != nil {
+	for currentURL != nil {
 		attempt++
 		if attempt > 15 {
-			log.Printf("WARNING: Potential infinite loop for url %s, abort parsing", currentUrl)
+			log.Printf("WARNING: Potential infinite loop for url %s, abort parsing", currentURL)
 			break
 		}
 		for _, p := range m.GetParsers() {
@@ -68,24 +73,24 @@ followLoop:
 				refererCopy = &url.URL{}
 				*refererCopy = *referer
 			}
-			currentUrlCopy := &url.URL{}
-			*currentUrlCopy = *currentUrl
-			r := p.Parse(currentUrlCopy, refererCopy)
+			currentURLCopy := &url.URL{}
+			*currentURLCopy = *currentURL
+			r := p.Parse(currentURLCopy, refererCopy)
 			if r.Ignored {
 				continue
 			}
-			if r.FollowUrl != nil {
-				if *currentUrl == *r.FollowUrl {
+			if r.FollowURL != nil {
+				if *currentURL == *r.FollowURL {
 					log.Printf("WARNING: Ignoring request to follow to same URL, ignoring.")
 					break followLoop
 				}
-				referer = currentUrl
-				currentUrl = r.FollowUrl
+				referer = currentURL
+				currentURL = r.FollowURL
 				continue followLoop
 			}
 			return p.Name(), r
 		}
-		currentUrl = nil
+		currentURL = nil
 	}
 
 	// No parser matches, link ignored
