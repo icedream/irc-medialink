@@ -36,23 +36,25 @@ You can use the `icedream/irc-medialink` image in order to run this bot in Docke
 An example with docker-compose would look like this:
 
 ```yaml
-version: "2"
+version: '2'
 
 services:
   mybot:
     image: icedream/irc-medialink
     command:
-    - go-wrapper
-    - run
-    - --youtube-key=<insert your youtube key here>
-    - --soundcloud-id=<insert your soundcloud id here>
-    - --soundcloud-secret=<insert your soundcloud secret here>
-    - --server=<irc server host>:<irc server port>
-    - --nickserv-pw=<nickserv password>
-    - --nick=MyBot
-    - --ident=botty
-    - --password=<server password>
-    - --channels=#channel1,#channel2,...
+      - go-wrapper
+      - run
+      - --youtube-key=<insert your youtube key here>
+      - --soundcloud-id=<insert your soundcloud id here>
+      - --soundcloud-secret=<insert your soundcloud secret here>
+      - --twitter-id=<insert your soundcloud id here>
+      - --twitter-secret=<insert your soundcloud secret here>
+      - --server=<irc server host>:<irc server port>
+      - --nickserv-pw=<nickserv password>
+      - --nick=MyBot
+      - --ident=botty
+      - --password=<server password>
+      - --channels=#channel1,#channel2,...
     restart: always
 ```
 
