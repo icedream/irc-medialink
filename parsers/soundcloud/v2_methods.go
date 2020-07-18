@@ -152,7 +152,8 @@ func (t timeString) ToTime(layout string) (parsedTime time.Time) {
 	}
 
 	if len(layout) == 0 {
-		layout = time.RFC3339
+		// TODO - I need to look up whether SoundCloud simply localizes this now because if yes, THAT'S TROUBLE.
+		layout = "2006/01/02 15:04:05 -0700"
 	}
 
 	parsedTime, err := time.Parse(layout, string(t))
