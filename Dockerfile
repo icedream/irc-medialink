@@ -6,6 +6,8 @@ RUN apk add --no-cache \
 ENV CGO_ENABLED 0
 
 WORKDIR /usr/src/medialink
+COPY go.mod go.sum ./
+RUN go mod download
 COPY . .
 RUN go build -ldflags '-extldflags "-static"' -o /irc-medialink
 RUN cp *.tpl /

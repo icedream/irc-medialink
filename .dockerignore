@@ -46,4 +46,13 @@ LICENSE
 **/*.md
 
 # Source code metadata
-.git
+.git*
+
+# Docker
+*Docker*
+*.docker*
+
+# CI
+.travis.yml
+Jenkinsfile
+
