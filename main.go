@@ -201,6 +201,8 @@ func main() {
 			return
 		}
 
+		// TODO - Handle mode params
+
 		add := true
 		for _, mode := range e.Arguments[1] {
 			switch mode {
@@ -216,6 +218,29 @@ func main() {
 				}
 			}
 		}
+
+		log.Println("New modes for", e.Arguments[0], "are", getChannelModes(e.Arguments[0]))
+	})
+	conn.AddCallback("324", func(e *irc.Event) { // handle RPL_CHANNELMODEIS
+		// TODO - Handle mode params (fourth argument)
+
+		add := true
+		for _, mode := range e.Arguments[2] {
+			switch mode {
+			case '+':
+				add = true
+			case '-':
+				add = false
+			default:
+				if add {
+					setChannelMode(e.Arguments[1], mode)
+				} else {
+					unsetChannelMode(e.Arguments[1], mode)
+				}
+			}
+		}
+
+		log.Println("New modes for", e.Arguments[1], "are", getChannelModes(e.Arguments[1]))
 	})
 	if !noInvite {
 		conn.AddCallback("INVITE", func(e *irc.Event) {
