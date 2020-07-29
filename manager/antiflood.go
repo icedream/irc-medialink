@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/thoj/go-ircevent"
+	irc "github.com/thoj/go-ircevent"
 
 	cache "github.com/patrickmn/go-cache"
 )
@@ -94,12 +94,14 @@ func normalizeTextAntiflood(target, text string) string {
 
 func normalizeUserAntiflood(target, source string) string {
 	sourceSplitHost := strings.SplitN(source, "@", 2)
-	sourceSplitHostname := strings.Split(sourceSplitHost[1], ".")
-	if len(sourceSplitHostname) > 1 &&
-		strings.EqualFold(sourceSplitHostname[len(sourceSplitHostname)-1], "IP") {
-		sourceSplitHostname[0] = "*"
+	if len(sourceSplitHost) > 1 {
+		sourceSplitHostname := strings.Split(sourceSplitHost[1], ".")
+		if len(sourceSplitHostname) > 1 &&
+			strings.EqualFold(sourceSplitHostname[len(sourceSplitHostname)-1], "IP") {
+			sourceSplitHostname[0] = "*"
+		}
+		source = fmt.Sprintf("%s!%s@%s", "*", "*", strings.Join(sourceSplitHostname, "."))
 	}
-	source = fmt.Sprintf("%s!%s@%s", "*", "*", strings.Join(sourceSplitHostname, "."))
 	return fmt.Sprintf("USER/%s/%s", strings.ToUpper(target), source)
 }
 
