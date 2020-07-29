@@ -29,3 +29,53 @@ var (
 func stripIrcFormatting(text string) string {
 	return rxIrcColor.ReplaceAllLiteralString(text, "")
 }
+
+const (
+	runeCTCPDelimiter      = '\x01'
+	runeCTCPParamDelimiter = ' '
+)
+
+var (
+	rxCTCP = regexp.MustCompile(`^` +
+		string(runeCTCPDelimiter) +
+		`([^` + string(runeCTCPParamDelimiter) + `]+)(` + string(runeCTCPParamDelimiter) + `.+)` + // not using \s is intentional here
+		string(runeCTCPDelimiter) + `?` +
+		`$`)
+)
+
+type ctcpMessage struct {
+	Command string
+	Params  []string
+}
+
+func (msg *ctcpMessage) String() string {
+	str := string(runeCTCPDelimiter) + strings.ToUpper(msg.Command)
+	if msg.Params != nil && len(msg.Params) > 0 {
+		str += string(runeCTCPParamDelimiter) + strings.Join(msg.Params, string(runeCTCPParamDelimiter))
+	}
+	str += string(runeCTCPDelimiter)
+	return str
+}
+
+func (msg *ctcpMessage) ParamLine() string {
+	return strings.Join(msg.Params, string(runeCTCPParamDelimiter))
+}
+
+func parseCTCP(msg string) (parsedMessage *ctcpMessage, ok bool) {
+	matches := rxCTCP.FindStringSubmatch(msg)
+	if matches == nil {
+		return
+	}
+
+	parsedMessage = &ctcpMessage{}
+
+	parsedMessage.Command = matches[1]
+	if len(matches) > 2 {
+		parsedMessage.Params = strings.Split(matches[2], string(runeCTCPParamDelimiter))
+	} else {
+		parsedMessage.Params = []string{}
+	}
+
+	ok = true
+	return
+}

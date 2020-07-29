@@ -9,7 +9,9 @@ WORKDIR /usr/src/medialink
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN go build -ldflags '-extldflags "-static"' -o /irc-medialink
+ARG APPLICATION_NAME
+ARG SUPPORT_IRC_CHANNEL
+RUN ./build.sh -ldflags '-extldflags "-static"' -o /irc-medialink
 RUN cp *.tpl /
 
 ###

@@ -1,11 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"net/url"
 	"strings"
 	"time"
-
-	"net/url"
 
 	irc "github.com/thoj/go-ircevent"
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -17,6 +17,7 @@ import (
 	"github.com/icedream/irc-medialink/parsers/web"
 	"github.com/icedream/irc-medialink/parsers/wikipedia"
 	"github.com/icedream/irc-medialink/parsers/youtube"
+	"github.com/icedream/irc-medialink/version"
 )
 
 func must(err error) {
@@ -28,6 +29,13 @@ func must(err error) {
 }
 
 func main() {
+	fmt.Println(version.MakeHumanReadableVersionString(false, false))
+	if timestamp, ok := version.FormattedAppBuildTime(); ok {
+		fmt.Printf("\tbuild timestamp: %s\n", timestamp)
+	}
+	fmt.Printf("\t\u00A9 %d\u2013%d %s\n", 2016, 2020, "Carl Kittelberger")
+	fmt.Println("")
+
 	var youtubeAPIKey string
 
 	var soundcloudClientID string
@@ -46,8 +54,8 @@ func main() {
 	var timeout time.Duration
 	var pingFreq time.Duration
 
-	nickname := "YouTubeBot"
-	ident := "youtube"
+	nickname := version.AppName
+	ident := strings.ToLower(version.AppName)
 	var nickservPw string
 	channels := []string{}
 
@@ -253,7 +261,7 @@ func main() {
 							time.Sleep(1 * time.Second)
 							conn.Privmsgf(targetChannel, "Thanks for inviting me, %s! I am %s, the friendly bot that shows information about links posted in this channel. I hope I can be of great help for everyone here in %s! :)", sourceNick, conn.GetNick(), targetChannel)
 							time.Sleep(2 * time.Second)
-							conn.Privmsg(targetChannel, "If you ever run into trouble with me (or find any bugs), please use the channel #MediaLink for contact on this IRC.")
+							conn.Privmsgf(targetChannel, "If you ever run into trouble with me (or find any bugs), please use the channel %s for contact on this IRC.", version.SupportIRCChannel)
 							break joinWaitLoop
 						}
 					case channel := <-inviteChan:
@@ -269,6 +277,97 @@ func main() {
 			conn.Join(e.Arguments[1])
 		})
 	}
+	handleText := func(nick, target, source, msg string) {
+		msg = stripIrcFormatting(msg)
+
+		// Ignore user if they just joined
+		if shouldIgnore := m.TrackUser(target, source); shouldIgnore {
+			log.Print("This message will be ignored since the user just joined.")
+			return
+		}
+
+		urlStr := xurls.Relaxed.FindString(msg)
+
+		// Parse URL!
+		u, err := url.ParseRequestURI(urlStr)
+		if err != nil {
+			u, err = url.ParseRequestURI("http://" + urlStr)
+		}
+		if err != nil {
+			log.Print(err)
+			return
+		}
+
+		// Check if this URL has been recently parsed before (antiflood)
+		shouldIgnore := m.TrackUrl(target, u)
+		if shouldIgnore {
+			log.Printf("WARNING: URL antiflood triggered, dropping URL for %s: %s", target, u)
+			return
+		}
+
+		_, result := m.Parse(u)
+		if result.Error != nil {
+			log.Print(result.Error)
+		}
+		if result.UserError != nil {
+			if s, err := tplString("error", result.UserError); err != nil {
+				log.Print(err)
+			} else {
+				s = stripIrcFormattingIfChannelBlocksColors(target, s)
+				conn.Privmsg(target, s)
+			}
+		}
+		if result.Error == nil && result.UserError == nil && result.Information != nil {
+			for _, i := range result.Information {
+				if s, err := tplString("link-info", i); err != nil {
+					log.Print(err)
+				} else {
+					s = stripIrcFormattingIfChannelBlocksColors(target, s)
+					conn.Privmsg(target, s)
+				}
+			}
+		}
+	}
+	conn.AddCallback("NOTICE", func(e *irc.Event) {
+		go func(event *irc.Event) {
+
+			// TODO - handle channel notice
+			// TODO - handle private noice
+
+			//sender := event.Nick
+			target := event.Arguments[0]
+			isChannel := true
+			if strings.EqualFold(target, conn.GetNick()) {
+				// Private notice to us!
+				target = event.Nick
+				isChannel = false
+			}
+			if strings.EqualFold(target, conn.GetNick()) {
+				// Emergency switch to avoid endless loop,
+				// dropping all messages from the bot to the bot!
+				log.Printf("BUG - Emergency switch, caught message from bot to bot: %s", event.Arguments)
+				return
+			}
+
+			// Parse CTCP replies
+			msg := event.Message()
+			if _, isCTCP := parseCTCP(msg); isCTCP {
+				// Ignore all CTCP replies
+				return
+			}
+
+			msg = stripIrcFormatting(msg)
+			log.Printf("<%s @ %s> %s", event.Nick, target, msg)
+
+			if !isChannel {
+				// Explain who we are and what we do
+				conn.Noticef(target, "Hi, I parse links people post to chat rooms to give some information about them. I also allow people to search for YouTube videos and SoundCloud sounds straight from IRC. If you have questions or got any bug reports, please direct them to Icedream in %s, thank you!", version.SupportIRCChannel)
+				return
+			}
+
+			handleText(event.Nick, target, event.Source, msg)
+		}(e)
+	})
 	conn.AddCallback("PRIVMSG", func(e *irc.Event) {
 		go func(event *irc.Event) {
 			//sender := event.Nick
@@ -285,64 +384,87 @@ func main() {
 				log.Printf("BUG - Emergency switch, caught message from bot to bot: %s", event.Arguments)
 				return
 			}
-			msg := stripIrcFormatting(event.Message())
 
-			log.Printf("<%s @ %s> %s", event.Nick, target, msg)
+			// Parse CTCP requests
+			msg := event.Message()
+			if parsedMessage, isCTCP := parseCTCP(msg); isCTCP {
+				switch {
+				case strings.EqualFold(parsedMessage.Command, "ACTION"):
+					// Parse action message
 
-			// Ignore user if they just joined
-			if shouldIgnore := m.TrackUser(target, event.Source); shouldIgnore {
-				log.Print("This message will be ignored since the user just joined.")
+					msg = stripIrcFormatting(strings.Join(parsedMessage.Params, " "))
+					log.Printf("<%s @ %s> * %s %s", event.Nick, target, event.Nick, msg)
+
+				case strings.EqualFold(parsedMessage.Command, "CLIENTINFO"):
+					// Reply with supported CTCP message types
+
+					conn.Connection.Notice(e.Nick, (&ctcpMessage{
+						Command: parsedMessage.Command,
+						// TODO - maybe do proper time calculations to get total milliseconds since Unix epoch date here
+						Params: []string{
+							"ACTION",
+							"CLIENTINFO",
+							"FINGER",
+							"PING",
+							"TIME",
+							"VERSION",
+						},
+					}).String())
+					return
+
+				case strings.EqualFold(parsedMessage.Command, "PING"):
+					// Reply with timestamp
+
+					conn.Connection.Notice(e.Nick, (&ctcpMessage{
+						Command: "PONG",
+						// TODO - myabe do proper time calculations to get total milliseconds since Unix epoch date here
+						Params: []string{fmt.Sprintf("%+d", time.Now().Unix()/1000000)},
+					}).String())
+					return
+
+				case strings.EqualFold(parsedMessage.Command, "TIME"):
+					// Reply with human-readable local time
+
+					conn.Connection.Notice(e.Nick, (&ctcpMessage{
+						Command: parsedMessage.Command,
+						Params:  []string{time.Now().Local().Format(time.RFC1123)},
+					}).String())
+					return
+
+				case strings.EqualFold(parsedMessage.Command, "FINGER"):
+					// Reply with version string
+
+					conn.Connection.Notice(e.Nick, (&ctcpMessage{
+						Command: parsedMessage.Command,
+						Params:  []string{"IRC bot running", version.MakeHumanReadableVersionString(true, true)},
+					}).String())
+					return
+
+				case strings.EqualFold(parsedMessage.Command, "VERSION"):
+					// Reply with version string
+
+					conn.Connection.Notice(e.Nick, (&ctcpMessage{
+						Command: parsedMessage.Command,
+						Params:  []string{version.MakeHumanReadableVersionString(true, false)},
+					}).String())
+					return
+
+				default:
+					// Ignore
+					return
+				}
+			} else {
+				msg = stripIrcFormatting(msg)
+				log.Printf("<%s @ %s> %s", event.Nick, target, msg)
+			}
+
+			if !isChannel {
+				// Explain who we are and what we do
+				conn.Privmsgf(target, "Hi, I parse links people post to chat rooms to give some information about them. I also allow people to search for YouTube videos and SoundCloud sounds straight from IRC. If you have questions or got any bug reports, please direct them to Icedream in #MediaLink, thank you!")
 				return
 			}
 
-			urlStr := xurls.Relaxed.FindString(msg)
-
-			switch {
-			case !isChannel:
-				// Explain who we are and what we do
-				conn.Privmsgf(target, "Hi, I parse links people post to chat rooms to give some information about them. I also allow people to search for YouTube videos and SoundCloud sounds straight from IRC. If you have questions or got any bug reports, please direct them to Icedream in #MediaLink, thank you!")
-			case len(urlStr) > 0: // URL?
-				// Parse URL!
-				u, err := url.ParseRequestURI(urlStr)
-				if err != nil {
-					u, err = url.ParseRequestURI("http://" + urlStr)
-				}
-				if err != nil {
-					log.Print(err)
-					break
-				}
-
-				// Check if this URL has been recently parsed before (antiflood)
-				shouldIgnore := m.TrackUrl(target, u)
-				if shouldIgnore {
-					log.Printf("WARNING: URL antiflood triggered, dropping URL for %s: %s", target, u)
-					break
-				}
-
-				_, result := m.Parse(u)
-				if result.Error != nil {
-					log.Print(result.Error)
-				}
-				if result.UserError != nil {
-					if s, err := tplString("error", result.UserError); err != nil {
-						log.Print(err)
-					} else {
-						s = stripIrcFormattingIfChannelBlocksColors(target, s)
-						conn.Privmsg(target, s)
-					}
-				}
-				if result.Error == nil && result.UserError == nil && result.Information != nil {
-					for _, i := range result.Information {
-						if s, err := tplString("link-info", i); err != nil {
-							log.Print(err)
-						} else {
-							s = stripIrcFormattingIfChannelBlocksColors(target, s)
-							conn.Privmsg(target, s)
-						}
-					}
-				}
-			}
-
+			handleText(event.Nick, target, event.Source, msg)
 		}(e)
 	})
 

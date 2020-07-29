@@ -2,6 +2,7 @@ package web
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -17,6 +18,7 @@ import (
 
 	"github.com/icedream/irc-medialink/parsers"
 	"github.com/icedream/irc-medialink/util/limitedio"
+	"github.com/icedream/irc-medialink/version"
 	"github.com/yhat/scrape"
 )
 
@@ -36,10 +38,16 @@ const (
 // Parser implements parsing of standard HTML web pages.
 type Parser struct {
 	EnableImages bool
+	UserAgent    string
 }
 
 // Init initializes this parser.
 func (p *Parser) Init() error {
+	if len(version.AppVersion) > 0 {
+		p.UserAgent = fmt.Sprintf("%s/%s", version.AppName, strings.TrimLeft(version.AppVersion, "v"))
+	} else {
+		p.UserAgent = version.AppName
+	}
 	return nil
 }
 
@@ -71,7 +79,7 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 	if referer != nil {
 		req.Header.Set("Referer", referer.String())
 	}
-	req.Header.Set("User-Agent", "MediaLink IRC Bot")
+	req.Header.Set("User-Agent", p.UserAgent)
 	req.Header.Set("Accept-Language", "*")
 	resp, err := http.DefaultTransport.RoundTrip(req)
 	if err != nil {
