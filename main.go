@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"log"
 	"net/url"
+	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 	"time"
 
 	irc "github.com/thoj/go-ircevent"
@@ -486,7 +489,15 @@ func main() {
 	// connect
 	must(conn.Connect(server))
 
-	// listen for errors
+	// listen for signals
+	go func() {
+		sigc := make(chan os.Signal, 1)
+		signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM)
+		sig := <-sigc
+		log.Println("Requesting bot shutdown due to received signal:", sig)
+		conn.Quit()
+	}()
+
 	log.Print("Now looping.")
 	conn.Loop()
 }
