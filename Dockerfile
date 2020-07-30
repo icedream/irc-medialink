@@ -10,7 +10,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
 ARG APPLICATION_NAME
-RUN ./build.sh -ldflags '-extldflags "-static"' -o /irc-medialink
+RUN EXTRA_LDFLAGS='-extldflags "-static"' ./build.sh -o /irc-medialink
 RUN cp *.tpl /
 
 ###
