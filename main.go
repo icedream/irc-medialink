@@ -297,6 +297,9 @@ func main() {
 		}
 
 		urlStr := xurls.Relaxed.FindString(msg)
+		if len(urlStr) < 1 {
+			return
+		}
 
 		// Parse URL!
 		u, err := url.ParseRequestURI(urlStr)
