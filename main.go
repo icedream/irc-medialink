@@ -377,8 +377,21 @@ func main() {
 			handleText(event.Nick, target, event.Source, msg)
 		}(e)
 	})
+	// Inject our own version
+	conn.RemoveCallback("CTCP_VERSION", 0)
+	conn.AddCallback("CTCP_VERSION", func(e *irc.Event) {
+		conn.Connection.Notice(e.Nick, (&ctcpMessage{
+			Command: "VERSION",
+			Params:  []string{version.MakeHumanReadableVersionString(true, false), "based on", irc.VERSION},
+		}).String())
+	})
+	// Inject our own userinfo
+	conn.RemoveCallback("CTCP_USERINFO", 0)
 	conn.AddCallback("CTCP_USERINFO", func(e *irc.Event) {
-		log.Printf("%+v", e)
+		conn.Connection.Notice(e.Nick, (&ctcpMessage{
+			Command: "USERINFO",
+			Params:  []string{"IRC bot running", version.MakeHumanReadableVersionString(true, true)},
+		}).String())
 	})
 	conn.AddCallback("CTCP_ACTION", func(e *irc.Event) {
 		//sender := event.Nick
@@ -423,7 +436,7 @@ func main() {
 		switch {
 		case strings.EqualFold(e.Arguments[0], "FINGER"):
 			conn.Connection.Notice(e.Nick, (&ctcpMessage{
-				Command: e.Arguments[0],
+				Command: "FINGER",
 				Params:  []string{"IRC bot running", version.MakeHumanReadableVersionString(true, true)},
 			}).String())
 		default:
