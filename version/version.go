@@ -18,9 +18,6 @@ var (
 
 	// AppSourceURL is the URL to the source code for this application.
 	AppSourceURL = "https://github.com/icedream/irc-medialink"
-
-	// SupportIRCChannel is the IRC channel in which this bot is maintained and supported.
-	SupportIRCChannel = "#MediaLink"
 )
 
 // AppBuildTime attempts to convert the built-time set string for the build timestamp to a Golang-native time.Time instance.

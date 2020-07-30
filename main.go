@@ -54,6 +54,9 @@ func main() {
 	var timeout time.Duration
 	var pingFreq time.Duration
 
+	ownerNickname := "Icedream"
+	ownerChannel := "#MediaLink"
+
 	nickname := version.AppName
 	ident := strings.ToLower(version.AppName)
 	var nickservPw string
@@ -71,6 +74,10 @@ func main() {
 	kingpin.Flag("pingfreq", "The ping frequency.").DurationVar(&pingFreq)
 	kingpin.Flag("nickserv-pw", "NickServ password.").StringVar(&nickservPw)
 	kingpin.Flag("channels", "Channels to join.").Short('c').StringsVar(&channels)
+
+	// Support config
+	kingpin.Flag("owner-channel", "Channel to refer to for support of this bot instance.").StringVar(&ownerChannel)
+	kingpin.Flag("owner-nickname", "User nickname to refer to for support of this bot instance.").StringVar(&ownerNickname)
 
 	// Youtube config
 	kingpin.Flag("youtube-key", "The API key to use to access the YouTube API.").StringVar(&youtubeAPIKey)
@@ -261,7 +268,7 @@ func main() {
 							time.Sleep(1 * time.Second)
 							conn.Privmsgf(targetChannel, "Thanks for inviting me, %s! I am %s, the friendly bot that shows information about links posted in this channel. I hope I can be of great help for everyone here in %s! :)", sourceNick, conn.GetNick(), targetChannel)
 							time.Sleep(2 * time.Second)
-							conn.Privmsgf(targetChannel, "If you ever run into trouble with me (or find any bugs), please use the channel %s for contact on this IRC.", version.SupportIRCChannel)
+							conn.Privmsgf(targetChannel, "If you ever run into trouble with me (or find any bugs), please use the channel %s for contact on this IRC.", ownerChannel)
 							break joinWaitLoop
 						}
 					case channel := <-inviteChan:
@@ -361,7 +368,7 @@ func main() {
 
 			if !isChannel {
 				// Explain who we are and what we do
-				conn.Noticef(target, "Hi, I parse links people post to chat rooms to give some information about them. I also allow people to search for YouTube videos and SoundCloud sounds straight from IRC. If you have questions or got any bug reports, please direct them to Icedream in %s, thank you!", version.SupportIRCChannel)
+				conn.Noticef(target, "Hi, I parse links people post to chat rooms to give some information about them. I also allow people to search for YouTube videos and SoundCloud sounds straight from IRC. If you have questions or got any bug reports, please direct them to %s in %s, thank you!", ownerNickname, ownerChannel)
 				return
 			}
 
@@ -460,7 +467,7 @@ func main() {
 
 			if !isChannel {
 				// Explain who we are and what we do
-				conn.Privmsgf(target, "Hi, I parse links people post to chat rooms to give some information about them. I also allow people to search for YouTube videos and SoundCloud sounds straight from IRC. If you have questions or got any bug reports, please direct them to Icedream in #MediaLink, thank you!")
+				conn.Privmsgf(target, "Hi, I parse links people post to chat rooms to give some information about them. I also allow people to search for YouTube videos and SoundCloud sounds straight from IRC. If you have questions or got any bug reports, please direct them to %s in %s, thank you!", ownerNickname, ownerChannel)
 				return
 			}
 
