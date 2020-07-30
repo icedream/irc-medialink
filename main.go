@@ -356,15 +356,17 @@ func main() {
 				return
 			}
 
-			// Parse CTCP replies
 			msg := event.Message()
-			if _, isCTCP := parseCTCP(msg); isCTCP {
-				// Ignore all CTCP replies
+			msg = stripIrcFormatting(msg)
+			log.Printf("<%s @ %s> Notice: %s", event.Nick, target, msg)
+
+			// Ignore system/internal messages
+			if len(e.Nick) <= 0 || len(target) <= 0 ||
+				strings.EqualFold(e.Nick, "NickServ") ||
+				strings.EqualFold(e.Nick, "ChanServ") ||
+				strings.EqualFold(e.Nick, "Global") {
 				return
 			}
-
-			msg = stripIrcFormatting(msg)
-			log.Printf("<%s @ %s> %s", event.Nick, target, msg)
 
 			if !isChannel {
 				// Explain who we are and what we do
@@ -374,6 +376,59 @@ func main() {
 
 			handleText(event.Nick, target, event.Source, msg)
 		}(e)
+	})
+	conn.AddCallback("CTCP_USERINFO", func(e *irc.Event) {
+		log.Printf("%+v", e)
+	})
+	conn.AddCallback("CTCP_ACTION", func(e *irc.Event) {
+		//sender := event.Nick
+		target := e.Arguments[0]
+		isChannel := true
+		if strings.EqualFold(target, conn.GetNick()) {
+			// Private message to us!
+			target = e.Nick
+			isChannel = false
+		}
+		if strings.EqualFold(target, conn.GetNick()) {
+			// Emergency switch to avoid endless loop,
+			// dropping all messages from the bot to the bot!
+			log.Printf("BUG - Emergency switch, caught message from bot to bot: %s", e.Arguments)
+			return
+		}
+
+		msg := stripIrcFormatting(strings.Join(e.Arguments, " "))
+		log.Printf("<%s @ %s> * %s %s", e.Nick, target, e.Nick, msg)
+
+		// Ignore system/internal messages
+		if len(e.Nick) <= 0 || len(target) <= 0 ||
+			strings.EqualFold(e.Nick, "NickServ") ||
+			strings.EqualFold(e.Nick, "ChanServ") ||
+			strings.EqualFold(e.Nick, "Global") {
+			return
+		}
+
+		if !isChannel {
+			// Explain who we are and what we do
+			conn.Privmsgf(target, "Hi, I parse links people post to chat rooms to give some information about them. I also allow people to search for YouTube videos and SoundCloud sounds straight from IRC. If you have questions or got any bug reports, please direct them to %s in %s, thank you!", ownerNickname, ownerChannel)
+			return
+		}
+
+		handleText(e.Nick, target, e.Source, msg)
+	})
+	conn.AddCallback("CTCP", func(e *irc.Event) {
+		if len(e.Arguments) < 1 {
+			return
+		}
+
+		switch {
+		case strings.EqualFold(e.Arguments[0], "FINGER"):
+			conn.Connection.Notice(e.Nick, (&ctcpMessage{
+				Command: e.Arguments[0],
+				Params:  []string{"IRC bot running", version.MakeHumanReadableVersionString(true, true)},
+			}).String())
+		default:
+			// Ignore
+		}
 	})
 	conn.AddCallback("PRIVMSG", func(e *irc.Event) {
 		go func(event *irc.Event) {
@@ -394,75 +449,15 @@ func main() {
 
 			// Parse CTCP requests
 			msg := event.Message()
-			if parsedMessage, isCTCP := parseCTCP(msg); isCTCP {
-				switch {
-				case strings.EqualFold(parsedMessage.Command, "ACTION"):
-					// Parse action message
+			msg = stripIrcFormatting(msg)
+			log.Printf("<%s @ %s> Message: %s", event.Nick, target, msg)
 
-					msg = stripIrcFormatting(strings.Join(parsedMessage.Params, " "))
-					log.Printf("<%s @ %s> * %s %s", event.Nick, target, event.Nick, msg)
-
-				case strings.EqualFold(parsedMessage.Command, "CLIENTINFO"):
-					// Reply with supported CTCP message types
-
-					conn.Connection.Notice(e.Nick, (&ctcpMessage{
-						Command: parsedMessage.Command,
-						// TODO - maybe do proper time calculations to get total milliseconds since Unix epoch date here
-						Params: []string{
-							"ACTION",
-							"CLIENTINFO",
-							"FINGER",
-							"PING",
-							"TIME",
-							"VERSION",
-						},
-					}).String())
-					return
-
-				case strings.EqualFold(parsedMessage.Command, "PING"):
-					// Reply with timestamp
-
-					conn.Connection.Notice(e.Nick, (&ctcpMessage{
-						Command: "PONG",
-						// TODO - myabe do proper time calculations to get total milliseconds since Unix epoch date here
-						Params: []string{fmt.Sprintf("%+d", time.Now().Unix()/1000000)},
-					}).String())
-					return
-
-				case strings.EqualFold(parsedMessage.Command, "TIME"):
-					// Reply with human-readable local time
-
-					conn.Connection.Notice(e.Nick, (&ctcpMessage{
-						Command: parsedMessage.Command,
-						Params:  []string{time.Now().Local().Format(time.RFC1123)},
-					}).String())
-					return
-
-				case strings.EqualFold(parsedMessage.Command, "FINGER"):
-					// Reply with version string
-
-					conn.Connection.Notice(e.Nick, (&ctcpMessage{
-						Command: parsedMessage.Command,
-						Params:  []string{"IRC bot running", version.MakeHumanReadableVersionString(true, true)},
-					}).String())
-					return
-
-				case strings.EqualFold(parsedMessage.Command, "VERSION"):
-					// Reply with version string
-
-					conn.Connection.Notice(e.Nick, (&ctcpMessage{
-						Command: parsedMessage.Command,
-						Params:  []string{version.MakeHumanReadableVersionString(true, false)},
-					}).String())
-					return
-
-				default:
-					// Ignore
-					return
-				}
-			} else {
-				msg = stripIrcFormatting(msg)
-				log.Printf("<%s @ %s> %s", event.Nick, target, msg)
+			// Ignore system/internal messages
+			if len(e.Nick) <= 0 || len(target) <= 0 ||
+				strings.EqualFold(e.Nick, "NickServ") ||
+				strings.EqualFold(e.Nick, "ChanServ") ||
+				strings.EqualFold(e.Nick, "Global") {
+				return
 			}
 
 			if !isChannel {
