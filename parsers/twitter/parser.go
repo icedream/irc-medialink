@@ -140,7 +140,7 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 		}
 
 		// parse publishedAt
-		if t, err := time.Parse(time.RFC3339, tweet.CreatedAt); err == nil {
+		if t, err := time.Parse(time.RubyDate, tweet.CreatedAt); err == nil {
 			r["PublishedAt"] = t
 		} else {
 			log.Print(err)
