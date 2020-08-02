@@ -146,11 +146,11 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 			log.Print(err)
 		}
 
-		r["Reposts"] = tweet.RetweetCount
+		r["Reposts"] = uint64(tweet.RetweetCount)
 		// TODO - maybe process included URLs of tweet?
 		// r["Url"] = tweet.Entities.Urls
-		r["Comments"] = tweet.ReplyCount
-		r["Favorites"] = tweet.FavoriteCount
+		r["Comments"] = uint64(tweet.ReplyCount)
+		r["Favorites"] = uint64(tweet.FavoriteCount)
 		r["Header"] = header
 		result.Information = append(result.Information, r)
 
