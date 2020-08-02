@@ -154,7 +154,6 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 			r := map[string]interface{}{
 				"ShortUrl": fmt.Sprintf("https://youtu.be/%v", url.QueryEscape(item.Id)),
 				"IsUpload": true,
-				"IsLive":   item.LiveStreamingDetails != nil,
 			}
 			if item.Snippet != nil {
 				r["Title"] = item.Snippet.Title
@@ -191,9 +190,62 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 				r["Dislikes"] = item.Statistics.DislikeCount
 				r["Favorites"] = item.Statistics.FavoriteCount
 			}
-			/*if item.LiveStreamingDetails != nil {
-				r["Views"] = item.LiveStreamingDetails.ConcurrentViewers
-			}*/
+			if item.LiveStreamingDetails != nil {
+				hasStartTime := len(item.LiveStreamingDetails.ActualStartTime) > 0
+				hasScheduledStartTime := len(item.LiveStreamingDetails.ScheduledStartTime) > 0
+				hasEndTime := len(item.LiveStreamingDetails.ActualEndTime) > 0
+				hasScheduledEndTime := len(item.LiveStreamingDetails.ScheduledEndTime) > 0
+				isLive := hasStartTime && !hasEndTime
+				var startTime, endTime, scheduledStartTime, scheduledEndTime time.Time
+				if hasStartTime {
+					parsed, err := time.Parse(time.RFC3339, item.LiveStreamingDetails.ActualStartTime)
+					if err == nil {
+						startTime = parsed
+					}
+				}
+				if hasEndTime {
+					parsed, err := time.Parse(time.RFC3339, item.LiveStreamingDetails.ActualEndTime)
+					if err == nil {
+						endTime = parsed
+					}
+				}
+				if hasScheduledStartTime {
+					parsed, err := time.Parse(time.RFC3339, item.LiveStreamingDetails.ScheduledStartTime)
+					if err == nil {
+						scheduledStartTime = parsed
+					}
+				}
+				if hasScheduledEndTime {
+					parsed, err := time.Parse(time.RFC3339, item.LiveStreamingDetails.ScheduledEndTime)
+					if err == nil {
+						scheduledEndTime = parsed
+					}
+				}
+				r["IsLive"] = isLive
+				if isLive {
+					// running broadcast
+					if !startTime.IsZero() {
+						r["Duration"] = time.Now().Sub(startTime)
+					}
+					r["Viewers"] = item.LiveStreamingDetails.ConcurrentViewers
+					if !scheduledEndTime.IsZero() {
+						r["DurationUntilEnd"] = endTime.Sub(time.Now())
+					}
+				} else if !hasStartTime {
+					// upcoming broadcast
+					r["IsUpcomingLive"] = true
+					if !scheduledStartTime.IsZero() {
+						r["DurationUntilScheduledStart"] = scheduledStartTime.Sub(time.Now())
+					}
+					r["Viewers"] = item.LiveStreamingDetails.ConcurrentViewers
+				} else {
+					// past broadcast
+					r["IsFinishedLive"] = true
+					if !endTime.IsZero() {
+						r["DurationSinceEnd"] = time.Now().Sub(endTime)
+					}
+				}
+			}
 			r["Header"] = header
 			result.Information = append(result.Information, r)
 		}

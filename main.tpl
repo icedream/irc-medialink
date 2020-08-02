@@ -24,21 +24,34 @@
 	{{- reset }}
 
 	»
-	
+
 	{{- if index . "AgeRestriction" }}
 		{{ color 4 -}}
 		{{ bold -}}
 		[{{- index . "AgeRestriction" }}]
 		{{- reset }}
 	{{- end }}
-	
+
 	{{- if index . "IsLive" }}
 		{{ bcolor 0 4 -}}
 		{{ bold -}}
-		LIVE
+		[● LIVE]
 		{{- reset }}
 	{{- end }}
-	
+
+	{{- if index . "IsUpcomingLive" }}
+		{{ bcolor 0 14 -}}
+		{{ bold -}}
+		[● LIVE]
+		{{- reset }}
+	{{- end }}
+
+	{{- if index . "IsFinishedLive" }}
+		{{ color 14 -}}
+		[● FINISHED]
+		{{- reset }}
+	{{- end }}
+
 	{{ if index . "IsProfile" }}
 		{{- if index . "Title" }}
 			{{ bold -}}
@@ -70,6 +83,15 @@
 	{{ else }}
 		{{ if index . "Title" }}
 			{{ excerpt 184 (index . "Title") }}
+			{{ if index . "IsUpcomingLive" }}
+				{{ if index . "DurationUntilScheduledStart" }}
+					{{ with index . "DurationUntilScheduledStart" }}
+						(coming up in {{ . }})
+					{{ end }}
+				{{ else }}
+					(coming up)
+				{{ end }}
+			{{ end }}
 			{{ with index . "Duration" }}
 				({{ . }})
 			{{ end }}
@@ -139,6 +161,9 @@
 	
 	{{ if or (index . "Views") (or (index . "Plays") (or (index . "Downloads") (or (index . "Uploads") (index . "Comments")))) }}
 		· 
+		{{ with index . "Viewers"}}
+			👥{{ compactnum . }}
+		{{ end }}
 		{{ with index . "Views" }}
 			👁{{ compactnum . }}
 		{{ end }}
