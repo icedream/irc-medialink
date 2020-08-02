@@ -34,6 +34,28 @@ func must(err error) {
 	log.Fatal(err)
 }
 
+type channelJoinedEvent struct {
+	Name string
+}
+
+type channelNeedsKeyEvent struct {
+	Name string
+}
+
+type channelKeyReceivedEvent struct {
+	KeySender string
+	Name      string
+	Key       string
+}
+
+type channelIsFullEvent struct {
+	Name string
+}
+
+type bannedFromChannelEvent struct {
+	Name string
+}
+
 func main() {
 	fmt.Println(version.MakeHumanReadableVersionString(false, false))
 	if timestamp, ok := version.FormattedAppBuildTime(); ok {
@@ -63,6 +85,8 @@ func main() {
 	ownerNickname := "Icedream"
 	ownerChannel := "#MediaLink"
 
+	var joinTimeout time.Duration = 3 * time.Minute
+
 	nickname := version.AppName
 	ident := strings.ToLower(version.AppName)
 	var nickservPw string
@@ -80,6 +104,7 @@ func main() {
 	kingpin.Flag("pingfreq", "The ping frequency.").DurationVar(&pingFreq)
 	kingpin.Flag("nickserv-pw", "NickServ password.").StringVar(&nickservPw)
 	kingpin.Flag("channels", "Channels to join.").Short('c').StringsVar(&channels)
+	kingpin.Flag("join-timeout", "Timeout for joining channels.").DurationVar(&joinTimeout)
 
 	// Support config
 	kingpin.Flag("owner-channel", "Channel to refer to for support of this bot instance.").StringVar(&ownerChannel)
@@ -169,8 +194,7 @@ func main() {
 		conn.PingFreq = pingFreq
 	}
 
-	joinChan := make(chan string)
-	inviteChan := make(chan string)
+	inviteEventChan := map[string]chan interface{}{}
 
 	// register callbacks
 	conn.AddCallback("001", func(e *irc.Event) { // handle RPL_WELCOME
@@ -201,9 +225,11 @@ func main() {
 		conn.Mode(e.Arguments[0])
 
 		// Asynchronous notification
-		select {
-		case joinChan <- e.Arguments[0]:
-		default:
+		if joinChan, ok := inviteEventChan[strings.ToLower(e.Arguments[0])]; ok {
+			select {
+			case joinChan <- &channelJoinedEvent{e.Arguments[0]}:
+			default:
+			}
 		}
 	})
 	conn.AddCallback("PART", func(e *irc.Event) {
@@ -251,42 +277,136 @@ func main() {
 		handleChannelModeChanges(e.Arguments[1], e.Arguments[2])
 	})
 	if !noInvite {
+		conn.AddCallback("471", func(e *irc.Event) { // handle ERR_CHANNELISFULL
+			// Require enough arguments
+			if len(e.Arguments) < 2 {
+				return
+			}
+
+			// Are we trying to join this channel?
+			// (Did we set up an event channel for this?)
+			channelName := strings.ToLower(e.Arguments[1])
+			if c, ok := inviteEventChan[channelName]; ok {
+				// Asynchronous notification of goroutine from INVITE
+				c <- &channelIsFullEvent{
+					Name: e.Arguments[1],
+				}
+				return
+			}
+		})
+		conn.AddCallback("474", func(e *irc.Event) { // handle ERR_BANNEDFROMCHAN
+			// Require enough arguments
+			if len(e.Arguments) < 2 {
+				return
+			}
+
+			// Are we trying to join this channel?
+			// (Did we set up an event channel for this?)
+			channelName := strings.ToLower(e.Arguments[1])
+			if c, ok := inviteEventChan[channelName]; ok {
+				// Asynchronous notification of goroutine from INVITE
+				c <- &bannedFromChannelEvent{
+					Name: e.Arguments[1],
+				}
+				return
+			}
+		})
+		conn.AddCallback("475", func(e *irc.Event) { // handle ERR_BADCHANNELKEY
+			// Example: :irc.rizon.no 475 Icedream #testchannel :Cannot join channel (+k)
+
+			// Require enough arguments
+			if len(e.Arguments) < 2 {
+				return
+			}
+
+			// Are we trying to join this channel?
+			// (Did we set up an event channel for this?)
+			channelName := strings.ToLower(e.Arguments[1])
+			if c, ok := inviteEventChan[channelName]; ok {
+				// Asynchronous notification of goroutine from INVITE
+				c <- &channelNeedsKeyEvent{
+					Name: e.Arguments[1],
+				}
+				return
+			}
+		})
 		conn.AddCallback("INVITE", func(e *irc.Event) {
 			// Is this INVITE not for us?
 			if !strings.EqualFold(e.Arguments[0], conn.GetNick()) {
 				return
 			}
 
-			// Asynchronous notification
-			select {
-			case inviteChan <- e.Arguments[1]:
-			default:
+			// Make sure we aren't already in an INVITE process for this channel
+			channelName := strings.ToLower(e.Arguments[1])
+			if _, ok := inviteEventChan[channelName]; ok {
+				conn.Connection.Noticef(e.Nick, "Already in the process of joining %s! If nothing happens, I can be reinvited there after %s.",
+					e.Arguments[1], joinTimeout)
+				return
 			}
 
-			// We have been invited, autojoin!
-			go func(sourceNick string, targetChannel string) {
+			// We have been invited, start process of joining the channel
+			inviteEventChan[channelName] = make(chan interface{}, 1)
+			go func(events chan interface{}, sourceNick string, targetChannel string) {
+				lastKeySender := ""
+				joinAttempt := 0
+				// TODO - inviteEventChan map management requires locking, it's currently missing
 			joinWaitLoop:
 				for {
 					select {
-					case channel := <-joinChan:
-						if strings.EqualFold(channel, targetChannel) {
-							// TODO - Thanks message
+					case inviteEventIntf := <-events:
+						switch inviteEvent := inviteEventIntf.(type) {
+						case *channelJoinedEvent:
+							delete(inviteEventChan, targetChannel)
 							time.Sleep(1 * time.Second)
-							conn.Privmsgf(targetChannel, "Thanks for inviting me, %s! I am %s, the friendly bot that shows information about links posted in this channel. I hope I can be of great help for everyone here in %s! :)", sourceNick, conn.GetNick(), targetChannel)
+							conn.Privmsgf(inviteEvent.Name, "Thanks for inviting me, %s! I am %s, the friendly bot that shows information about links posted in this channel. I hope I can be of great help for everyone here in %s! :)", sourceNick, conn.GetNick(), inviteEvent.Name)
 							time.Sleep(2 * time.Second)
-							conn.Privmsgf(targetChannel, "If you ever run into trouble with me (or find any bugs), please use the channel %s for contact on this IRC.", ownerChannel)
+							conn.Privmsgf(inviteEvent.Name, "If you ever run into trouble with me (or find any bugs), please use the channel %s for contact on this IRC.", ownerChannel)
+							break joinWaitLoop
+
+						case *channelNeedsKeyEvent:
+							if len(lastKeySender) > 0 {
+								joinAttempt++
+								if joinAttempt >= 2 {
+									delete(inviteEventChan, targetChannel)
+									conn.Connection.Noticef(lastKeySender, "This key seems to be wrong, abandoning attempt to join this channel for now. Please reinvite me to %s if you want to try again.",
+										targetChannel)
+									break joinWaitLoop
+								} else {
+									conn.Connection.Noticef(lastKeySender, "This key seems to be wrong, please check and resend within the next %s like this: \x02/msg %s KEY %s <key>\x02",
+										joinTimeout.String(), conn.GetNick(), targetChannel)
+								}
+							} else {
+								conn.Connection.Noticef(sourceNick, "This channel needs a key to join. You need to send the channel key to me in the next %s like this: \x02/msg %s KEY %s <key>\x02.",
+									joinTimeout.String(), conn.GetNick(), targetChannel)
+							}
+
+						case *channelKeyReceivedEvent:
+							// did we receive this key from the correct user?
+							if !strings.EqualFold(sourceNick, inviteEvent.KeySender) {
+								// ignore for dialog logic simplicity
+								continue
+							}
+							conn.Connection.Noticef(inviteEvent.KeySender, "Thank you, will try to join %s with this key!", targetChannel)
+							conn.Join(fmt.Sprintf("%s %s", targetChannel, inviteEvent.Key))
+
+						case *channelIsFullEvent:
+							delete(inviteEventChan, targetChannel)
+							conn.Connection.Notice(sourceNick, "This channel is unfortunately full or filling too quickly, and I am not allowed in. Please try again later.")
+							break joinWaitLoop
+
+						case *bannedFromChannelEvent:
+							delete(inviteEventChan, targetChannel)
+							conn.Connection.Notice(sourceNick, "I am unfortunately banned from this channel, abandoning attempt to join.")
 							break joinWaitLoop
 						}
-					case channel := <-inviteChan:
-						if strings.EqualFold(channel, targetChannel) {
-							break joinWaitLoop
-						}
-					case <-time.After(time.Minute):
-						log.Printf("WARNING: Timed out waiting for us to join %s as we got invited", targetChannel)
+
+					case <-time.After(joinTimeout):
+						conn.Connection.Noticef(sourceNick, "It took too long to join the channel %s, abandoning attempt to join. You can try again by reinviting me.",
+							targetChannel)
 						break joinWaitLoop
 					}
 				}
-			}(e.Nick, e.Arguments[1])
+			}(inviteEventChan[channelName], e.Nick, channelName)
 			conn.Join(e.Arguments[1])
 		})
 	}
@@ -472,7 +592,6 @@ func main() {
 				return
 			}
 
-			// Parse CTCP requests
 			msg := event.Message()
 			msg = stripIrcFormatting(msg)
 			log.Printf("<%s @ %s> Message: %s", event.Nick, target, msg)
@@ -486,8 +605,33 @@ func main() {
 			}
 
 			if !isChannel {
-				// Explain who we are and what we do
-				conn.Privmsgf(target, "Hi, I parse links people post to chat rooms to give some information about them. I also allow people to search for YouTube videos and SoundCloud sounds straight from IRC. If you have questions or got any bug reports, please direct them to %s in %s, thank you!", ownerNickname, ownerChannel)
+				// Detect commands
+				parts := strings.Fields(msg)
+				switch {
+				case strings.EqualFold(parts[0], "KEY") && len(parts) >= 3: // parts: ["KEY", channel, key]
+					// check if we are even waiting for a key for this channel
+					channelName := strings.ToLower(parts[1])
+					if c, ok := inviteEventChan[channelName]; ok {
+						channelKey := parts[2]
+						if len(channelKey) <= 0 {
+							conn.Noticef(e.Nick, "You need to provide a key for this channel.")
+						} else {
+							// Asynchronous notification of the goroutine from INVITE
+							select {
+							case c <- &channelKeyReceivedEvent{
+								KeySender: e.Nick,
+								Name:      channelName,
+								Key:       channelKey,
+							}:
+							default:
+							}
+						}
+					}
+
+				default:
+					// Explain who we are and what we do
+					conn.Privmsgf(target, "Hi, I parse links people post to chat rooms to give some information about them. I also allow people to search for YouTube videos and SoundCloud sounds straight from IRC. If you have questions or got any bug reports, please direct them to %s in %s, thank you!", ownerNickname, ownerChannel)
+				}
 				return
 			}
 
