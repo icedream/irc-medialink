@@ -95,7 +95,7 @@
 			{{ if index . "IsLive" }}
 				{{ if index . "ActualStartTime" }}
 					{{ with index . "ActualStartTime" }}
-						({{ ago . }})
+						(started {{ ago . }})
 					{{ end }}
 				{{ else }}
 					{{ with index . "Duration" }}
