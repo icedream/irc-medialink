@@ -32,6 +32,13 @@
 		{{- reset }}
 	{{- end }}
 	
+	{{- if index . "IsLive" }}
+		{{ bcolor 0 4 -}}
+		{{ bold -}}
+		LIVE
+		{{- reset }}
+	{{- end }}
+	
 	{{ if index . "IsProfile" }}
 		{{- if index . "Title" }}
 			{{ bold -}}
