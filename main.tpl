@@ -84,16 +84,28 @@
 		{{ if index . "Title" }}
 			{{ excerpt 184 (index . "Title") }}
 			{{ if index . "IsUpcomingLive" }}
-				{{ if index . "DurationUntilScheduledStart" }}
-					{{ with index . "DurationUntilScheduledStart" }}
-						(coming up in {{ . }})
+				{{ if index . "ScheduledStartTime" }}
+					{{ with index . "ScheduledStartTime" }}
+						(coming up {{ ago . }})
 					{{ end }}
 				{{ else }}
 					(coming up)
 				{{ end }}
 			{{ end }}
-			{{ with index . "Duration" }}
-				({{ . }})
+			{{ if index . "IsLive" }}
+				{{ if index . "ActualStartTime" }}
+					{{ with index . "ActualStartTime" }}
+						({{ ago . }})
+					{{ end }}
+				{{ else }}
+					{{ with index . "Duration" }}
+						({{ . }})
+					{{ end }}
+				{{ end }}
+			{{ else }}
+				{{ with index . "Duration" }}
+					({{ . }})
+				{{ end }}
 			{{ end }}
 		{{ else }}
 			{{ with index . "Description" }}

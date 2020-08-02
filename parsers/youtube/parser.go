@@ -222,29 +222,13 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 					}
 				}
 				r["IsLive"] = isLive
-				if isLive {
-					// running broadcast
-					if !startTime.IsZero() {
-						r["Duration"] = time.Now().Sub(startTime)
-					}
-					r["Viewers"] = item.LiveStreamingDetails.ConcurrentViewers
-					if !scheduledEndTime.IsZero() {
-						r["DurationUntilEnd"] = endTime.Sub(time.Now())
-					}
-				} else if !hasStartTime {
-					// upcoming broadcast
-					r["IsUpcomingLive"] = true
-					if !scheduledStartTime.IsZero() {
-						r["DurationUntilScheduledStart"] = scheduledStartTime.Sub(time.Now())
-					}
-					r["Viewers"] = item.LiveStreamingDetails.ConcurrentViewers
-				} else {
-					// past broadcast
-					r["IsFinishedLive"] = true
-					if !endTime.IsZero() {
-						r["DurationSinceEnd"] = time.Now().Sub(endTime)
-					}
-				}
+				r["IsUpcomingLive"] = !hasStartTime
+				r["IsFinishedLive"] = hasStartTime && hasEndTime
+				r["ScheduledStartTime"] = scheduledStartTime
+				r["ScheduledEndTime"] = scheduledEndTime
+				r["ActualStartTime"] = startTime
+				r["ActualEndTime"] = endTime
+				r["Viewers"] = item.LiveStreamingDetails.ConcurrentViewers
 			}
 			r["Header"] = header
 			result.Information = append(result.Information, r)
