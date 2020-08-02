@@ -58,6 +58,31 @@ func parseWithTimeout(p *Parser, t *testing.T, timeout time.Duration, u *url.URL
 	}
 }
 
+func Test_Parser_Parse_Simple(t *testing.T) {
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	httpmock.RegisterResponder("GET", "http://example.com/test",
+		getDefaultHTMLResponder())
+
+	p := mustNewParser(t)
+	originalURL := &url.URL{
+		Scheme: "http",
+		Host:   "example.com",
+		Path:   "/test",
+	}
+	result := p.Parse(originalURL, nil)
+
+	require.Equal(t, httpmock.GetTotalCallCount(), 1)
+
+	t.Logf("Result: %+v", result)
+	require.False(t, result.Ignored)
+	require.Nil(t, result.Error)
+	require.Nil(t, result.UserError)
+	require.Len(t, result.Information, 1)
+	require.Equal(t, validTestHTMLTitle, result.Information[0]["Title"])
+}
+
 func Test_Parser_Parse_IRCBotScience_NoTitle(t *testing.T) {
 	p := mustNewParser(t)
 	result := p.Parse(&url.URL{
