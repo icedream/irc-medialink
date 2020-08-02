@@ -132,7 +132,7 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 		}
 		r["Title"] = tweet.Text
 		if tweet.User != nil {
-			r["Author"] = "@" + tweet.User.Name
+			r["Author"] = "@" + tweet.User.ScreenName
 			r["AuthorIsVerified"] = tweet.User.Verified
 		}
 		if tweet.ExtendedTweet != nil {
