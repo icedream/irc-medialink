@@ -122,9 +122,10 @@ func Test_Parser_Parse_IRCBotScience_Redirect(t *testing.T) {
 func Test_Parser_Parse_Hash(t *testing.T) {
 	p := mustNewParser(t)
 	originalURL := &url.URL{
-		Scheme: "https",
-		Host:   "www.google.com",
-		Path:   "/#invalid",
+		Scheme:   "https",
+		Host:     "www.google.com",
+		Path:     "/",
+		Fragment: "invalid",
 	}
 	result := p.Parse(originalURL, nil)
 

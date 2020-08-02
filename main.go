@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/url"
@@ -22,6 +23,8 @@ import (
 	"github.com/icedream/irc-medialink/parsers/youtube"
 	"github.com/icedream/irc-medialink/version"
 )
+
+var errIsRelativeURL = errors.New("given url is relative, expected absolute")
 
 func must(err error) {
 	if err == nil {
@@ -302,9 +305,12 @@ func main() {
 		}
 
 		// Parse URL!
-		u, err := url.ParseRequestURI(urlStr)
-		if err != nil {
-			u, err = url.ParseRequestURI("http://" + urlStr)
+		u, err := url.Parse(urlStr)
+		if err != nil || !u.IsAbs() {
+			u, err = url.Parse("http://" + urlStr)
+		}
+		if err == nil && !u.IsAbs() {
+			err = errIsRelativeURL
 		}
 		if err != nil {
 			log.Print(err)
