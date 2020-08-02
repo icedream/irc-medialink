@@ -8,6 +8,7 @@ Currently explicit support has been built in for:
 
 - YouTube
 - SoundCloud
+- Twitter
 - Wikipedia
 - Direct image links
 
