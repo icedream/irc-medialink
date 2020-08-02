@@ -495,17 +495,33 @@ func main() {
 		}(e)
 	})
 
-	// connect
-	must(conn.Connect(server))
-
 	// listen for signals
+	isQuitting := false
 	go func() {
 		sigc := make(chan os.Signal, 1)
 		signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM)
 		sig := <-sigc
 		log.Println("Requesting bot shutdown due to received signal:", sig)
+		isQuitting = true
 		conn.Quit()
 	}()
+
+	// connect to server
+	log.Println("Connecting...")
+	for {
+		err := conn.Connect(server)
+		if isQuitting {
+			// ignore errors, we're shutting down!
+			break
+		}
+		if err == nil {
+			log.Println("Connected!")
+			break
+		}
+		log.Println("Connection failed:", err)
+		log.Println("Retrying in 10 seconds…")
+		time.Sleep(10 * time.Second)
+	}
 
 	log.Print("Now looping.")
 	conn.Loop()
