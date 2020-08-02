@@ -118,7 +118,7 @@
 				·
 			{{ end }}
 			{{ .ImageType }} image,
-			{{ if (index . "ImageSize") (index . "Size") }}
+			{{ if or (index . "ImageSize") (index . "Size") }}
 				{{ with index . "ImageSize" }}
 					{{ .X }}×{{ .Y }}
 				{{ end }}
