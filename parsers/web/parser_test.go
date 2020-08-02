@@ -7,6 +7,7 @@ import (
 
 	"github.com/icedream/irc-medialink/parsers"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func mustNewParser(t *testing.T) *Parser {
@@ -42,11 +43,11 @@ func Test_Parser_Parse_IRCBotScience_NoTitle(t *testing.T) {
 	}, nil)
 
 	t.Logf("Result: %+v", result)
-	assert.False(t, result.Ignored)
-	assert.Nil(t, result.Error)
-	assert.Nil(t, result.UserError)
-	assert.Len(t, result.Information, 1)
-	assert.Equal(t, noTitleStr, result.Information[0]["Title"])
+	require.False(t, result.Ignored)
+	require.Nil(t, result.Error)
+	require.Nil(t, result.UserError)
+	require.Len(t, result.Information, 1)
+	require.Equal(t, noTitleStr, result.Information[0]["Title"])
 }
 
 func Test_Parser_Parse_IRCBotScience_LongHeaders(t *testing.T) {
@@ -62,7 +63,7 @@ func Test_Parser_Parse_IRCBotScience_LongHeaders(t *testing.T) {
 
 	t.Logf("Result: %+v", result)
 	// It just shouldn't panic. Erroring out is fine.
-	assert.True(t, result.Ignored || result.Error != nil, result.Ignored)
+	require.True(t, result.Ignored || result.Error != nil, result.Ignored)
 }
 
 func Test_Parser_Parse_IRCBotScience_BigHeader(t *testing.T) {
@@ -78,7 +79,7 @@ func Test_Parser_Parse_IRCBotScience_BigHeader(t *testing.T) {
 
 	t.Logf("Result: %+v", result)
 	// It just shouldn't panic. Erroring out is fine.
-	assert.True(t, result.Ignored || result.Error != nil)
+	require.True(t, result.Ignored || result.Error != nil)
 }
 
 func Test_Parser_Parse_IRCBotScience_Large(t *testing.T) {
@@ -94,11 +95,11 @@ func Test_Parser_Parse_IRCBotScience_Large(t *testing.T) {
 	}
 
 	t.Logf("Result: %+v", result)
-	assert.False(t, result.Ignored)
-	assert.Nil(t, result.Error)
-	assert.Nil(t, result.UserError)
-	assert.Len(t, result.Information, 1)
-	assert.Equal(t, "If this title is printed, it works correctly.", result.Information[0]["Title"])
+	require.False(t, result.Ignored)
+	require.Nil(t, result.Error)
+	require.Nil(t, result.UserError)
+	require.Len(t, result.Information, 1)
+	require.Equal(t, "If this title is printed, it works correctly.", result.Information[0]["Title"])
 
 }
 
@@ -112,11 +113,11 @@ func Test_Parser_Parse_IRCBotScience_Redirect(t *testing.T) {
 	result := p.Parse(originalURL, nil)
 
 	t.Logf("Result: %+v", result)
-	assert.False(t, result.Ignored)
-	assert.Nil(t, result.Error)
-	assert.Nil(t, result.UserError)
-	assert.NotNil(t, result.FollowURL)
-	assert.Equal(t, originalURL.String(), result.FollowURL.String())
+	require.False(t, result.Ignored)
+	require.Nil(t, result.Error)
+	require.Nil(t, result.UserError)
+	require.NotNil(t, result.FollowURL)
+	require.Equal(t, originalURL.String(), result.FollowURL.String())
 }
 
 func Test_Parser_Parse_Hash(t *testing.T) {
@@ -130,7 +131,7 @@ func Test_Parser_Parse_Hash(t *testing.T) {
 	result := p.Parse(originalURL, nil)
 
 	t.Logf("Result: %+v", result)
-	assert.False(t, result.Ignored)
-	assert.Nil(t, result.Error)
-	assert.Nil(t, result.UserError)
+	require.False(t, result.Ignored)
+	require.Nil(t, result.Error)
+	require.Nil(t, result.UserError)
 }
