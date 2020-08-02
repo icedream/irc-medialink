@@ -11,6 +11,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dghubble/go-twitter v0.0.0-20190719072343-39e5462e111f
 	github.com/dustin/go-humanize v1.0.0
+	github.com/jarcoal/httpmock v1.0.5
 	github.com/mvdan/xurls v1.1.0 // indirect
 	github.com/neurosnap/sentences v1.0.6 // indirect
 	github.com/onsi/ginkgo v1.9.0 // indirect

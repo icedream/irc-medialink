@@ -1,14 +1,38 @@
 package web
 
 import (
+	"fmt"
+	"html"
+	"net/http"
 	"net/url"
 	"testing"
 	"time"
 
 	"github.com/icedream/irc-medialink/parsers"
+	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+const (
+	validTestHTMLTitle = "Testing"
+)
+
+var (
+	validTestHTML = fmt.Sprintf(`<!doctype html><html><head><title>%s</title></head><body><h1>Testing</h1></body></html>`, html.EscapeString(validTestHTMLTitle))
+)
+
+func getDefaultHTMLResponder() httpmock.Responder {
+	header := http.Header{}
+	header.Set("content-type", "text/html; charset=utf-8")
+	return httpmock.ResponderFromResponse(&http.Response{
+		Status:        fmt.Sprintf("%d %s", http.StatusOK, http.StatusText(http.StatusOK)),
+		StatusCode:    http.StatusOK,
+		Body:          httpmock.NewRespBodyFromString(validTestHTML),
+		Header:        header,
+		ContentLength: int64(len([]byte(validTestHTML))),
+	})
+}
 
 func mustNewParser(t *testing.T) *Parser {
 	p := new(Parser)
@@ -121,14 +145,22 @@ func Test_Parser_Parse_IRCBotScience_Redirect(t *testing.T) {
 }
 
 func Test_Parser_Parse_Hash(t *testing.T) {
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	httpmock.RegisterResponder("GET", "http://example.com/test",
+		httpmock.NewBytesResponder(http.StatusOK, []byte{}))
+
 	p := mustNewParser(t)
 	originalURL := &url.URL{
-		Scheme:   "https",
-		Host:     "www.google.com",
-		Path:     "/",
+		Scheme:   "http",
+		Host:     "example.com",
+		Path:     "/test",
 		Fragment: "invalid",
 	}
 	result := p.Parse(originalURL, nil)
+
+	require.Equal(t, httpmock.GetTotalCallCount(), 1)
 
 	t.Logf("Result: %+v", result)
 	require.False(t, result.Ignored)
