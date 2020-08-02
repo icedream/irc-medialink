@@ -30,7 +30,6 @@ var (
 )
 
 const (
-	runeHash    = '#'
 	noTitleStr  = "(no title)"
 	maxHTMLSize = 32 * 1024
 )
@@ -64,10 +63,10 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 		return
 	}
 
-	// Remove hash reference from URL since that's not meant to be in the request
-	if strings.Contains(u.Path, string(runeHash)) {
-		u = &(*u) // avoid modifying original URL object
-		u.Path = u.Path[0:strings.IndexRune(u.Path, runeHash)]
+	// Remove fragment from URL since that's not meant to be in the request
+	if len(u.Fragment) > 0 {
+		u = &(*u)
+		u.Fragment = ""
 	}
 
 	// Make request

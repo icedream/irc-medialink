@@ -266,7 +266,7 @@ func Test_Parser_Parse_Hash(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	httpmock.RegisterResponder("GET", "http://example.com/test",
-		httpmock.NewBytesResponder(http.StatusOK, []byte{}))
+		getDefaultHTMLResponder())
 
 	p := mustNewParser(t)
 	originalURL := &url.URL{
