@@ -1,4 +1,4 @@
-FROM golang:1.14.5-alpine AS builder
+FROM golang:1.16-alpine AS builder
 
 RUN apk add --no-cache \
 	git
@@ -15,7 +15,7 @@ RUN cp *.tpl /
 
 ###
 
-FROM alpine:3.12
+FROM alpine:3.13
 
 RUN apk add --no-cache ca-certificates
 
