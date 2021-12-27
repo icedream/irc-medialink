@@ -15,7 +15,7 @@ RUN cp *.tpl /
 
 ###
 
-FROM alpine:3.12
+FROM alpine:3.15
 
 RUN apk add --no-cache ca-certificates
 
