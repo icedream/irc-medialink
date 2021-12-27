@@ -509,14 +509,8 @@ func main() {
 			handleText(event.Nick, target, event.Source, msg)
 		}(e)
 	})
-	// Inject our own version
-	conn.RemoveCallback("CTCP_VERSION", 0)
-	conn.AddCallback("CTCP_VERSION", func(e *irc.Event) {
-		conn.Connection.Notice(e.Nick, (&ctcpMessage{
-			Command: "VERSION",
-			Params:  []string{version.MakeHumanReadableVersionString(true, false), "based on", irc.VERSION},
-		}).String())
-	})
+	// Set our own version string
+	conn.Version = fmt.Sprintf("%s based on %s", version.MakeHumanReadableVersionString(true, false), irc.VERSION)
 	// Inject our own userinfo
 	conn.RemoveCallback("CTCP_USERINFO", 0)
 	conn.AddCallback("CTCP_USERINFO", func(e *irc.Event) {
