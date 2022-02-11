@@ -6,7 +6,6 @@ require (
 	github.com/ChannelMeter/iso8601duration v0.0.0-20150204201828-8da3af7a2a61
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137 // indirect
-	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/channelmeter/iso8601duration v0.0.0-20150204201828-8da3af7a2a61 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dghubble/go-twitter v0.0.0-20211115160449-93a8679adecb
@@ -25,7 +24,6 @@ require (
 	github.com/yhat/scrape v0.0.0-20161128144610-24b7890b0945
 	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
-	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/api v0.68.0
 	google.golang.org/grpc v1.43.0 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
