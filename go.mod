@@ -24,8 +24,9 @@ require (
 	github.com/yhat/scrape v0.0.0-20161128144610-24b7890b0945
 	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
+	golang.org/x/sys v0.0.0-20220209214540-3681064d5158 // indirect
 	google.golang.org/api v0.68.0
-	google.golang.org/grpc v1.43.0 // indirect
+	google.golang.org/genproto v0.0.0-20220210181026-6fee9acbd336 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/neurosnap/sentences.v1 v1.0.7
 	gopkg.in/yaml.v2 v2.4.0
