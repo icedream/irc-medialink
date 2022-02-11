@@ -23,7 +23,7 @@ require (
 	github.com/thoj/go-ircevent v0.0.0-20210723090443-73e444401d64
 	github.com/yanatan16/golang-soundcloud v0.0.0-20161013200625-a182dd459b66
 	github.com/yhat/scrape v0.0.0-20161128144610-24b7890b0945
-	golang.org/x/net v0.0.0-20211216030914-fe4d6282115f
+	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
 	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/api v0.68.0
