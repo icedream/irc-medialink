@@ -18,7 +18,7 @@ require (
 	github.com/onsi/gomega v1.6.0 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/serenize/snaker v0.0.0-20201027110005-a7ad2135616e
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.7.2
 	github.com/thoj/go-ircevent v0.0.0-20210723090443-73e444401d64
 	github.com/yanatan16/golang-soundcloud v0.0.0-20161013200625-a182dd459b66
 	github.com/yhat/scrape v0.0.0-20161128144610-24b7890b0945
