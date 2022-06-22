@@ -1,6 +1,6 @@
 module github.com/icedream/irc-medialink
 
-go 1.12
+go 1.18
 
 require (
 	github.com/ChannelMeter/iso8601duration v0.0.0-20150204201828-8da3af7a2a61
