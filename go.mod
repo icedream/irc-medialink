@@ -6,7 +6,7 @@ require (
 	github.com/ChannelMeter/iso8601duration v0.0.0-20150204201828-8da3af7a2a61
 	github.com/dghubble/go-twitter v0.0.0-20220621150516-b9b1581459a3
 	github.com/dustin/go-humanize v1.0.0
-	github.com/jarcoal/httpmock v1.1.0
+	github.com/jarcoal/httpmock v1.2.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/serenize/snaker v0.0.0-20201027110005-a7ad2135616e
 	github.com/stretchr/testify v1.7.5
