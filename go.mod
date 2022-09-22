@@ -15,7 +15,7 @@ require (
 	github.com/yhat/scrape v0.0.0-20161128144610-24b7890b0945
 	golang.org/x/net v0.0.0-20220909164309-bea034e7d591
 	golang.org/x/oauth2 v0.0.0-20220822191816-0ebed06d0094
-	google.golang.org/api v0.96.0
+	google.golang.org/api v0.97.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/neurosnap/sentences.v1 v1.0.7
 	gopkg.in/yaml.v2 v2.4.0
