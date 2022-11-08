@@ -13,7 +13,7 @@ require (
 	github.com/thoj/go-ircevent v0.0.0-20210723090443-73e444401d64
 	github.com/yanatan16/golang-soundcloud v0.0.0-20161013200625-a182dd459b66
 	github.com/yhat/scrape v0.0.0-20161128144610-24b7890b0945
-	golang.org/x/net v0.1.0
+	golang.org/x/net v0.2.0
 	golang.org/x/oauth2 v0.1.0
 	google.golang.org/api v0.99.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
@@ -42,7 +42,7 @@ require (
 	github.com/onsi/gomega v1.6.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	go.opencensus.io v0.23.0 // indirect
-	golang.org/x/sys v0.1.0 // indirect
+	golang.org/x/sys v0.2.0 // indirect
 	golang.org/x/text v0.4.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20221010155953-15ba04fc1c0e // indirect
