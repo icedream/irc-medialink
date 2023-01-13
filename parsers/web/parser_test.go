@@ -15,10 +15,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/icedream/irc-medialink/parsers"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/icedream/irc-medialink/parsers"
 )
 
 const (
@@ -128,6 +129,7 @@ func getDefaultJPEGResponder() httpmock.Responder {
 
 func mustNewParser(t *testing.T) *Parser {
 	p := new(Parser)
+	p.Config = Config{}
 	if !assert.Nil(t, p.Init(), "Parser.Init must throw no errors") {
 		panic("Can't run test without a proper parser")
 	}
@@ -241,7 +243,6 @@ func Test_Parser_Parse_IRCBotScience_Large(t *testing.T) {
 	require.Nil(t, result.UserError)
 	require.Len(t, result.Information, 1)
 	require.Equal(t, "If this title is printed, it works correctly.", result.Information[0]["Title"])
-
 }
 
 func Test_Parser_Parse_IRCBotScience_Redirect(t *testing.T) {
@@ -293,7 +294,7 @@ func Test_Parser_Parse_Image_GIF(t *testing.T) {
 		getDefaultGIFResponder())
 
 	p := mustNewParser(t)
-	p.EnableImages = true
+	p.Config.EnableImages = true
 	originalURL := &url.URL{
 		Scheme: "http",
 		Host:   "example.com",
@@ -324,7 +325,7 @@ func Test_Parser_Parse_Image_PNG(t *testing.T) {
 		getDefaultPNGResponder())
 
 	p := mustNewParser(t)
-	p.EnableImages = true
+	p.Config.EnableImages = true
 	originalURL := &url.URL{
 		Scheme: "http",
 		Host:   "example.com",
@@ -355,7 +356,7 @@ func Test_Parser_Parse_Image_JPEG(t *testing.T) {
 		getDefaultJPEGResponder())
 
 	p := mustNewParser(t)
-	p.EnableImages = true
+	p.Config.EnableImages = true
 	originalURL := &url.URL{
 		Scheme: "http",
 		Host:   "example.com",
