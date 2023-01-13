@@ -180,77 +180,122 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 			{
 				"Description": og.Description,
 				"Title":       og.Title,
+				"Header":      og.SiteName,
 			},
 		}
-		for _, m := range og.Videos {
-			info := map[string]interface{}{
-				"IsUpload": true,
-				"Tags":     m.Tags,
+		mergeFirstMedia := false
+		switch og.Type {
+		case "article":
+			result.Information[0]["IsUpload"] = true
+			mergeFirstMedia = true
+		case "music.song":
+			result.Information[0]["IsUpload"] = true
+			result.Information[0]["IsSong"] = true
+			mergeFirstMedia = true
+		case "music.musician":
+			result.Information[0]["IsProfile"] = true
+			result.Information[0]["IsMusician"] = true
+			result.Information[0]["IsArtist"] = true
+		case "video.other":
+			result.Information[0]["IsUpload"] = true
+			mergeFirstMedia = true
+		}
+		if m := og.Article; m != nil {
+			var info map[string]interface{}
+			if mergeFirstMedia {
+				info = result.Information[0]
+				mergeFirstMedia = false
+			} else {
+				info = map[string]interface{}{}
 			}
+			info["IsArticle"] = true
+			info["Author"] = strings.Join(m.Authors, ", ")
+			info["Authors"] = m.Authors
+			info["Tags"] = m.Tags
+			info["Section"] = m.Section
+			info["ModifiedTime"] = m.ModifiedTime
+			info["ExpirationTime"] = m.ExpirationTime
+			info["PublishedTime"] = m.PublishedTime
+			result.Information = append(result.Information, info)
+		}
+		if m := og.Book; m != nil {
+			var info map[string]interface{}
+			if mergeFirstMedia {
+				info = result.Information[0]
+				mergeFirstMedia = false
+			} else {
+				info = map[string]interface{}{}
+			}
+			info["IsBook"] = true
+			info["Author"] = strings.Join(m.Authors, ", ")
+			info["Authors"] = m.Authors
+			info["ISBN"] = m.ISBN
+			info["Tags"] = m.Tags
+			info["ReleaseDate"] = m.ReleaseDate
+			result.Information = append(result.Information, info)
+		}
+		if m := og.Profile; m != nil {
+			var info map[string]interface{}
+			if mergeFirstMedia {
+				info = result.Information[0]
+				mergeFirstMedia = false
+			} else {
+				info = map[string]interface{}{}
+			}
+			info["IsProfile"] = true
+			info["Name"] = fmt.Sprintf("%s %s", m.FirstName, m.LastName)
+			info["Title"] = m.Username
+			info["Gender"] = m.Gender
+			result.Information = append(result.Information, info)
+		}
+		for _, m := range og.Videos {
+			var info map[string]interface{}
+			if mergeFirstMedia {
+				info = result.Information[0]
+				mergeFirstMedia = false
+			} else {
+				info = map[string]interface{}{}
+			}
+			info["IsUpload"] = true
+			info["Tags"] = m.Tags
 			if m.Duration != 0 {
 				info["Duration"] = time.Second * time.Duration(m.Duration)
 			}
 			result.Information = append(result.Information, info)
 		}
-		if m := og.Article; m != nil {
-			info := map[string]interface{}{
-				"IsArticle":      true,
-				"Author":         strings.Join(m.Authors, ", "),
-				"Authors":        m.Authors,
-				"Tags":           m.Tags,
-				"Section":        m.Section,
-				"ModifiedTime":   m.ModifiedTime,
-				"ExpirationTime": m.ExpirationTime,
-				"PublishedTime":  m.PublishedTime,
-			}
-			result.Information = append(result.Information, info)
-		}
-		if m := og.Book; m != nil {
-			info := map[string]interface{}{
-				"IsBook":      true,
-				"Author":      strings.Join(m.Authors, ", "),
-				"Authors":     m.Authors,
-				"ISBN":        m.ISBN,
-				"Tags":        m.Tags,
-				"ReleaseDate": m.ReleaseDate,
-			}
-			result.Information = append(result.Information, info)
-		}
-		if m := og.Profile; m != nil {
-			info := map[string]interface{}{
-				"IsProfile": true,
-				"Name":      fmt.Sprintf("%s %s", m.FirstName, m.LastName),
-				"Title":     m.Username,
-				"Gender":    m.Gender,
-			}
-			result.Information = append(result.Information, info)
-		}
-		for _, m := range og.Images {
-			info := map[string]interface{}{
-				"IsUpload": true,
-			}
-			if m.Width != 0 && m.Height != 0 {
-				info["ImageSize"] = image.Point{X: int(m.Width), Y: int(m.Height)}
-			}
-			if len(m.Type) > 0 {
-				info["ImageType"] = mimeTypeToName(m.Type)
-			}
-			result.Information = append(result.Information, info)
-		}
+		// for _, m := range og.Images {
+		// 	var info map[string]interface{}
+		// 	if mergeFirstMedia {
+		// 		info = result.Information[0]
+		// 		mergeFirstMedia = false
+		// 	} else {
+		// 		info = map[string]interface{}{}
+		// 	}
+		// 	info["IsUpload"] = true
+		// 	if m.Width != 0 && m.Height != 0 {
+		// 		info["ImageSize"] = image.Point{X: int(m.Width), Y: int(m.Height)}
+		// 	}
+		// 	if len(m.Type) > 0 {
+		// 		info["ImageType"] = mimeTypeToName(m.Type)
+		// 	}
+		// 	result.Information = append(result.Information, info)
+		// }
 
-		// Search for the title as fallback
-		result.Information = []map[string]interface{}{
-			{
-				"IsUpload": false,
-			},
-		}
-		title, ok := scrape.Find(root, scrape.ByTag(atom.Title))
-		if ok {
-			// Got it!
-			result.Information[0]["Title"] = rxNewlines.ReplaceAllString(scrape.Text(title), " ")
-		} else {
-			// No title found
-			result.Information[0]["Title"] = noTitleStr
+		if len(og.Title) == 0 {
+			// Search for the title as fallback
+			result.Information = []map[string]interface{}{
+				{
+					"IsUpload": false,
+				},
+			}
+			title, ok := scrape.Find(root, scrape.ByTag(atom.Title))
+			if ok {
+				// Got it!
+				result.Information[0]["Title"] = rxNewlines.ReplaceAllString(scrape.Text(title), " ")
+			} else {
+				// No title found
+				result.Information[0]["Title"] = noTitleStr
+			}
 		}
 	case "image/png", "image/jpeg", "image/gif":
 		if p.Config.EnableImages {

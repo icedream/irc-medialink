@@ -29,7 +29,24 @@ const (
 )
 
 var (
-	validTestHTML  = fmt.Sprintf(`<!doctype html><html><head><title>%s</title></head><body><h1>Testing</h1></body></html>`, html.EscapeString(validTestHTMLTitle))
+	validTestHTML = fmt.Sprintf(`<!doctype html>
+<html>
+<head>
+<meta property="og:title" content="%s">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://example.com/">
+<meta property="og:image" content="https://example.com/logo.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="300">
+<meta property="og:image:height" content="300">
+<meta property="og:image:alt" content="The test logo">
+<meta property="og:description" content="The test description.">
+<title>HTML default title</title>
+</head>
+<body>
+<h1>Testing</h1>
+</body>
+</html>`, html.EscapeString(validTestHTMLTitle))
 	validTestImage image.Image
 	validTestGIF   []byte
 	validTestPNG   []byte
