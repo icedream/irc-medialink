@@ -70,6 +70,7 @@ func (p *Parser) Name() string {
 
 var (
 	rxPostRoute = regexp.MustCompile(".+/comments/(?P<id>[a-z0-9]+)(?:/.*|$)")
+	rxWikiRoute = regexp.MustCompile("^/r/(?P<name>[^/]+)/wiki/(?:revisions/|edit/)?(?P<id>[a-z0-9]+)/?$")
 	// rxCommentRoute   = regexp.MustCompile(".+/comments/(?P<id>[a-z0-9]+)/comment/(?P<cid>[a-z0-9]+)(?:/.*)?")
 	rxSubredditRoute = regexp.MustCompile("/r/(?P<name>[^/]+)$")
 )
@@ -136,6 +137,24 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 		}
 		if pac.NSFW {
 			result.Information[0]["AgeRestriction"] = "NSFW"
+		}
+	} else if m := rxWikiRoute.FindStringSubmatch(u.Path); m != nil {
+		// path points to a post
+		subreddit := m[1]
+		page := m[2]
+		pac, _, err := p.api.Wiki.Page(ctx, subreddit, page)
+		if err != nil {
+			result.Error = err
+			return
+		}
+		result.Information = []map[string]interface{}{
+			{
+				"Description": pac.Content,
+				"Header":      header,
+			},
+		}
+		if pac.RevisionDate != nil {
+			result.Information[0]["ModifiedAt"] = pac.RevisionDate.Time
 		}
 	} else {
 		// all other paths
