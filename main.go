@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"log"
@@ -16,6 +17,7 @@ import (
 	"mvdan.cc/xurls"
 
 	"github.com/icedream/irc-medialink/manager"
+	"github.com/icedream/irc-medialink/parsers/reddit"
 	"github.com/icedream/irc-medialink/parsers/soundcloud"
 	"github.com/icedream/irc-medialink/parsers/twitter"
 	"github.com/icedream/irc-medialink/parsers/web"
@@ -72,6 +74,11 @@ func main() {
 	var twitterClientID string
 	var twitterClientSecret string
 
+	var redditClientID string
+	var redditClientSecret string
+	// TODO - do we want this as default?
+	redditUsername := "icedream2k9"
+
 	var webEnableImages bool
 	var webAcceptLanguage string
 
@@ -121,6 +128,11 @@ func main() {
 	// Twitter config
 	kingpin.Flag("twitter-id", "The Twitter ID.").StringVar(&twitterClientID)
 	kingpin.Flag("twitter-secret", "The Twitter secret.").StringVar(&twitterClientSecret)
+
+	// Reddit config
+	kingpin.Flag("reddit-id", "The Reddit ID.").StringVar(&redditClientID)
+	kingpin.Flag("reddit-secret", "The Reddit secret.").StringVar(&redditClientSecret)
+	kingpin.Flag("reddit-username", "The Reddit username of the admin hosting this bot instance.").StringVar(&redditUsername)
 
 	// Web parser config
 	kingpin.Flag("images", "Enables parsing links of images. Disabled by default for legal reasons.").BoolVar(&webEnableImages)
@@ -177,6 +189,16 @@ func main() {
 	// Load wikipedia parser
 	must(m.RegisterParser(new(wikipedia.Parser)))
 
+	// Load reddit parser
+	redditParser := &reddit.Parser{
+		Config: &reddit.Config{
+			ClientID:       redditClientID,
+			ClientSecret:   redditClientSecret,
+			RedditUsername: redditUsername,
+		},
+	}
+	must(m.RegisterParser(redditParser))
+
 	// Load web parser
 	webParser := &web.Parser{
 		Config: web.Config{
@@ -190,7 +212,12 @@ func main() {
 	conn := m.AntifloodIrcConn(irc.IRC(nickname, ident))
 	conn.Debug = debug
 	conn.VerboseCallbackHandler = conn.Debug
-	conn.UseTLS = useTLS
+	if useTLS {
+		conn.UseTLS = true
+		conn.TLSConfig = &tls.Config{
+			ServerName: strings.SplitN(server, ":", 2)[0],
+		}
+	}
 	conn.Password = password
 	if timeout > time.Duration(0) {
 		conn.Timeout = timeout

@@ -55,7 +55,10 @@
 	{{ if index . "IsProfile" }}
 		{{- if index . "Title" }}
 			{{ bold -}}
-			{{- index . "Title" }}:
+			{{- index . "Title" }}
+			{{- if or (index . "Name") (index . "Description") -}}
+			:
+			{{- end -}}
 			{{- bold }}
 		{{- end }}
 
@@ -79,6 +82,10 @@
 					{{ end }}
 				{{ end }}
 			{{ end }}
+		{{ end }}
+
+		{{ with index . "Description" }}
+			{{ excerpt 128 . }}
 		{{ end }}
 	{{ else }}
 		{{ if index . "Title" }}
@@ -147,7 +154,14 @@
 		{{ end }}
 	{{ end }}
 
-	{{ if or (index . "Likes") (or (index . "Favorites") (index . "Dislikes")) }}
+	{{ if index . "Subscribers" }}
+		·
+		{{ with index . "Subscribers" }}
+			👥{{ compactnum . }}
+		{{ end }}
+	{{ end }}
+
+	{{ if or (index . "Likes") (or (index . "Favorites") (or (index . "Dislikes") (index . "Upvotes"))) }}
 		·
 		{{ with index . "Likes" }}
 			{{ color 3 -}}
@@ -157,6 +171,11 @@
 		{{ with index . "Dislikes" }}
 			{{ color 4 -}}
 			👎{{ compactnum . }}
+			{{- reset }}
+		{{ end }}
+		{{ with index . "Upvotes" }}
+			{{ color 7 -}}
+			⬆️{{ compactnum . }}
 			{{- reset }}
 		{{ end }}
 		{{ with index . "Favorites" }}

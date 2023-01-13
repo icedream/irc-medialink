@@ -11,6 +11,7 @@ require (
 	github.com/serenize/snaker v0.0.0-20201027110005-a7ad2135616e
 	github.com/stretchr/testify v1.8.1
 	github.com/thoj/go-ircevent v0.0.0-20210723090443-73e444401d64
+	github.com/vartanbeno/go-reddit/v2 v2.0.1
 	github.com/yanatan16/golang-soundcloud v0.0.0-20161013200625-a182dd459b66
 	github.com/yhat/scrape v0.0.0-20161128144610-24b7890b0945
 	golang.org/x/net v0.5.0
@@ -34,7 +35,7 @@ require (
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137 // indirect
 	github.com/cenkalti/backoff/v4 v4.1.3 // indirect
 	github.com/channelmeter/iso8601duration v0.0.0-20150204201828-8da3af7a2a61 // indirect
-	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/davecgh/go-spew v1.1.1
 	github.com/dghubble/sling v1.4.0 // indirect
 	github.com/dyatlov/go-opengraph/opengraph v0.0.0-20220524092352-606d7b1e5f8a
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
@@ -57,3 +58,5 @@ require (
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+replace github.com/vartanbeno/go-reddit/v2 v2.0.1 => github.com/and3rson/go-reddit/v2 v2.0.1-0.20210730203358-83240db9f66d
