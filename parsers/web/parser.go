@@ -3,23 +3,25 @@ package web
 import (
 	"errors"
 	"fmt"
-	"net/http"
-	"net/url"
-	"regexp"
-	"strings"
-
-	"golang.org/x/net/html"
-	"golang.org/x/net/html/atom"
-
 	"image"
 	_ "image/gif"  // GIF support for image
 	_ "image/jpeg" // JPEG support for image
 	_ "image/png"  // PNG support for image
+	"io"
+	"net/http"
+	"net/url"
+	"regexp"
+	"strings"
+	"time"
+
+	"github.com/dyatlov/go-opengraph/opengraph"
+	"github.com/yhat/scrape"
+	"golang.org/x/net/html"
+	"golang.org/x/net/html/atom"
 
 	"github.com/icedream/irc-medialink/parsers"
 	"github.com/icedream/irc-medialink/util/limitedio"
 	"github.com/icedream/irc-medialink/version"
-	"github.com/yhat/scrape"
 )
 
 var (
@@ -36,8 +38,8 @@ const (
 
 // Parser implements parsing of standard HTML web pages.
 type Parser struct {
-	EnableImages bool
-	UserAgent    string
+	UserAgent string
+	Config    Config
 }
 
 // Init initializes this parser.
@@ -53,6 +55,41 @@ func (p *Parser) Init() error {
 // Name returns the descriptive name of this parser.
 func (p *Parser) Name() string {
 	return "Web"
+}
+
+func (p *Parser) enrichImageInfo(body io.Reader, result *parsers.ParseResult) {
+	if !p.Config.EnableImages {
+		return
+	}
+
+	// No need to limit the reader to a specific size here as
+	// image.DecodeConfig only reads as much as needed anyways.
+	if m, imgType, err := image.DecodeConfig(body); err != nil {
+		result.UserError = ErrCorruptedImage
+	} else {
+		info := map[string]interface{}{
+			"ImageSize": image.Point{X: m.Width, Y: m.Height},
+			"ImageType": strings.ToUpper(imgType),
+		}
+		result.Information = []map[string]interface{}{info}
+	}
+}
+
+func mimeTypeToName(imgType string) string {
+	switch strings.ToUpper(imgType) {
+	case "image/png":
+		return "PNG"
+	case "image/jpeg":
+		return "JPEG"
+	case "image/gif":
+		return "GIF"
+	case "image/tiff", "image/tif", "image/x-tif":
+		return "TIFF"
+	case "image/bmp":
+		return "BMP"
+	default:
+		return imgType
+	}
 }
 
 // Parse analyzes a given URL.
@@ -79,7 +116,9 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 		req.Header.Set("Referer", referer.String())
 	}
 	req.Header.Set("User-Agent", p.UserAgent)
-	req.Header.Set("Accept-Language", "*")
+	if len(p.Config.AcceptLanguage) > 0 {
+		req.Header.Set("Accept-Language", p.Config.AcceptLanguage)
+	}
 	resp, err := http.DefaultTransport.RoundTrip(req)
 	if err != nil {
 		result.Error = err
@@ -115,12 +154,88 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 			contentLength = int(resp.ContentLength)
 		}
 		limitedBody := limitedio.NewLimitedReader(resp.Body, contentLength)
+
 		root, err := html.Parse(limitedBody)
 		if err != nil {
 			result.Error = err
 			return
 		}
-		// Search for the title
+
+		// Search for opengraph data first
+		og := opengraph.NewOpenGraph()
+		for _, meta := range scrape.FindAll(root, scrape.ByTag(atom.Meta)) {
+			if meta.Attr != nil {
+				m := make(map[string]string)
+				for _, a := range meta.Attr {
+					m[atom.String([]byte(a.Key))] = a.Val
+				}
+				og.ProcessMeta(m)
+			}
+		}
+
+		result.Information = []map[string]interface{}{
+			{
+				"Description": og.Description,
+				"Title":       og.Title,
+			},
+		}
+		for _, m := range og.Videos {
+			info := map[string]interface{}{
+				"IsUpload": true,
+				"Tags":     m.Tags,
+			}
+			if m.Duration != 0 {
+				info["Duration"] = time.Second * time.Duration(m.Duration)
+			}
+			result.Information = append(result.Information, info)
+		}
+		if m := og.Article; m != nil {
+			info := map[string]interface{}{
+				"IsArticle":      true,
+				"Author":         strings.Join(m.Authors, ", "),
+				"Authors":        m.Authors,
+				"Tags":           m.Tags,
+				"Section":        m.Section,
+				"ModifiedTime":   m.ModifiedTime,
+				"ExpirationTime": m.ExpirationTime,
+				"PublishedTime":  m.PublishedTime,
+			}
+			result.Information = append(result.Information, info)
+		}
+		if m := og.Book; m != nil {
+			info := map[string]interface{}{
+				"IsBook":      true,
+				"Author":      strings.Join(m.Authors, ", "),
+				"Authors":     m.Authors,
+				"ISBN":        m.ISBN,
+				"Tags":        m.Tags,
+				"ReleaseDate": m.ReleaseDate,
+			}
+			result.Information = append(result.Information, info)
+		}
+		if m := og.Profile; m != nil {
+			info := map[string]interface{}{
+				"IsProfile": true,
+				"Name":      fmt.Sprintf("%s %s", m.FirstName, m.LastName),
+				"Title":     m.Username,
+				"Gender":    m.Gender,
+			}
+			result.Information = append(result.Information, info)
+		}
+		for _, m := range og.Images {
+			info := map[string]interface{}{
+				"IsUpload": true,
+			}
+			if m.Width != 0 && m.Height != 0 {
+				info["ImageSize"] = image.Point{X: int(m.Width), Y: int(m.Height)}
+			}
+			if len(m.Type) > 0 {
+				info["ImageType"] = mimeTypeToName(m.Type)
+			}
+			result.Information = append(result.Information, info)
+		}
+
+		// Search for the title as fallback
 		result.Information = []map[string]interface{}{
 			{
 				"IsUpload": false,
@@ -135,23 +250,15 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 			result.Information[0]["Title"] = noTitleStr
 		}
 	case "image/png", "image/jpeg", "image/gif":
-		if p.EnableImages {
+		if p.Config.EnableImages {
+			p.enrichImageInfo(resp.Body, &result)
 
-			// No need to limit the reader to a specific size here as
-			// image.DecodeConfig only reads as much as needed anyways.
-			if m, imgType, err := image.DecodeConfig(resp.Body); err != nil {
-				result.UserError = ErrCorruptedImage
-			} else {
-				info := map[string]interface{}{
-					"IsUpload":  true,
-					"ImageSize": image.Point{X: m.Width, Y: m.Height},
-					"ImageType": strings.ToUpper(imgType),
-					"Title":     u.Path[strings.LastIndex(u.Path, "/")+1:],
-				}
+			if result.UserError == nil {
+				result.Information[0]["IsUpload"] = true
+				result.Information[0]["Title"] = u.Path[strings.LastIndex(u.Path, "/")+1:]
 				if resp.ContentLength > 0 {
-					info["Size"] = uint64(resp.ContentLength)
+					result.Information[0]["Size"] = uint64(resp.ContentLength)
 				}
-				result.Information = []map[string]interface{}{info}
 			}
 			break
 		}

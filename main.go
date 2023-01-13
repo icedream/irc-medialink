@@ -73,6 +73,7 @@ func main() {
 	var twitterClientSecret string
 
 	var webEnableImages bool
+	var webAcceptLanguage string
 
 	var debug bool
 	var noInvite bool
@@ -123,6 +124,7 @@ func main() {
 
 	// Web parser config
 	kingpin.Flag("images", "Enables parsing links of images. Disabled by default for legal reasons.").BoolVar(&webEnableImages)
+	kingpin.Flag("web-language", "Which accepted languages to indicate to websites.").Default("*").StringVar(&webAcceptLanguage)
 
 	kingpin.Parse()
 
@@ -177,7 +179,10 @@ func main() {
 
 	// Load web parser
 	webParser := &web.Parser{
-		EnableImages: webEnableImages,
+		Config: web.Config{
+			AcceptLanguage: webAcceptLanguage,
+			EnableImages:   webEnableImages,
+		},
 	}
 	must(m.RegisterParser(webParser))
 
@@ -469,11 +474,10 @@ func main() {
 	}
 	conn.AddCallback("NOTICE", func(e *irc.Event) {
 		go func(event *irc.Event) {
-
 			// TODO - handle channel notice
 			// TODO - handle private noice
 
-			//sender := event.Nick
+			// sender := event.Nick
 			target := event.Arguments[0]
 			isChannel := true
 			if strings.EqualFold(target, conn.GetNick()) {
@@ -520,7 +524,7 @@ func main() {
 		}).String())
 	})
 	conn.AddCallback("CTCP_ACTION", func(e *irc.Event) {
-		//sender := event.Nick
+		// sender := event.Nick
 		target := e.Arguments[0]
 		isChannel := true
 		if strings.EqualFold(target, conn.GetNick()) {
@@ -571,7 +575,7 @@ func main() {
 	})
 	conn.AddCallback("PRIVMSG", func(e *irc.Event) {
 		go func(event *irc.Event) {
-			//sender := event.Nick
+			// sender := event.Nick
 			target := event.Arguments[0]
 			isChannel := true
 			if strings.EqualFold(target, conn.GetNick()) {
