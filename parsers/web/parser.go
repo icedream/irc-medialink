@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/yhat/scrape"
 	"golang.org/x/net/html"
@@ -181,12 +182,15 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 				"Description": og.Description,
 				"Title":       og.Title,
 				"Header":      og.SiteName,
+				"Determiner":  og.Determiner,
 			},
 		}
 		mergeFirstMedia := false
 		switch og.Type {
 		case "article":
 			result.Information[0]["IsUpload"] = true
+			mergeFirstMedia = true
+		case "profile":
 			mergeFirstMedia = true
 		case "music.song":
 			result.Information[0]["IsUpload"] = true
@@ -206,6 +210,7 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 				info = result.Information[0]
 				mergeFirstMedia = false
 			} else {
+				result.Information = append(result.Information, info)
 				info = map[string]interface{}{}
 			}
 			info["IsArticle"] = true
@@ -216,7 +221,6 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 			info["ModifiedTime"] = m.ModifiedTime
 			info["ExpirationTime"] = m.ExpirationTime
 			info["PublishedTime"] = m.PublishedTime
-			result.Information = append(result.Information, info)
 		}
 		if m := og.Book; m != nil {
 			var info map[string]interface{}
@@ -241,12 +245,14 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 				mergeFirstMedia = false
 			} else {
 				info = map[string]interface{}{}
+				result.Information = append(result.Information, info)
 			}
 			info["IsProfile"] = true
 			info["Name"] = fmt.Sprintf("%s %s", m.FirstName, m.LastName)
-			info["Title"] = m.Username
+			if len(m.Username) > 0 {
+				info["Title"] = m.Username
+			}
 			info["Gender"] = m.Gender
-			result.Information = append(result.Information, info)
 		}
 		for _, m := range og.Videos {
 			var info map[string]interface{}
@@ -255,13 +261,13 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 				mergeFirstMedia = false
 			} else {
 				info = map[string]interface{}{}
+				result.Information = append(result.Information, info)
 			}
 			info["IsUpload"] = true
 			info["Tags"] = m.Tags
 			if m.Duration != 0 {
 				info["Duration"] = time.Second * time.Duration(m.Duration)
 			}
-			result.Information = append(result.Information, info)
 		}
 		// for _, m := range og.Images {
 		// 	var info map[string]interface{}
@@ -270,6 +276,7 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 		// 		mergeFirstMedia = false
 		// 	} else {
 		// 		info = map[string]interface{}{}
+		// 		result.Information = append(result.Information, info)
 		// 	}
 		// 	info["IsUpload"] = true
 		// 	if m.Width != 0 && m.Height != 0 {
@@ -278,8 +285,9 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 		// 	if len(m.Type) > 0 {
 		// 		info["ImageType"] = mimeTypeToName(m.Type)
 		// 	}
-		// 	result.Information = append(result.Information, info)
 		// }
+
+		spew.Dump(result)
 
 		if len(og.Title) == 0 {
 			// Search for the title as fallback
