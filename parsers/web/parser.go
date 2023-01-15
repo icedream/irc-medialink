@@ -14,7 +14,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/yhat/scrape"
 	"golang.org/x/net/html"
@@ -286,8 +285,6 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 		// 		info["ImageType"] = mimeTypeToName(m.Type)
 		// 	}
 		// }
-
-		spew.Dump(result)
 
 		if len(og.Title) == 0 {
 			// Search for the title as fallback
