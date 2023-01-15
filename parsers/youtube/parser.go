@@ -57,13 +57,16 @@ func parseYouTubeURL(uri *url.URL, followRedirects int) (youtubeReference, strin
 		if u.Path == "/watch" {
 			// http://youtube.com/watch?v={id}
 			return videoReference, u.Query().Get("v")
-		} else if strings.HasPrefix(u.Path, "/channel/") {
+		} else if strings.HasPrefix(u.Path, "/live/") {
+			// http://youtube.com/live/{id}
+			return videoReference, strings.Trim(u.Path[6:], "/")
+		} else if strings.HasPrefix(u.Path, "/channel/") && !strings.HasSuffix(u.Path, "/live") {
 			// https://www.youtube.com/channel/{channelid}
 			return channelIDReference, strings.Trim(u.Path[9:], "/")
-		} else if strings.HasPrefix(u.Path, "/c/") {
+		} else if strings.HasPrefix(u.Path, "/c/") && !strings.HasSuffix(u.Path, "/live") {
 			// http://youtube.com/c/{channelname}
 			return channelNameReference, strings.Trim(u.Path[3:], "/")
-		} else if strings.HasPrefix(u.Path, "/user/") {
+		} else if strings.HasPrefix(u.Path, "/user/") && !strings.HasSuffix(u.Path, "/live") {
 			// http://youtube.com/user/{channelname}
 			return channelNameReference, strings.Trim(u.Path[6:], "/")
 		} else if strings.HasPrefix(u.Path, "/playlist") {
