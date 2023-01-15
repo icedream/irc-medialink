@@ -10,9 +10,10 @@ import (
 	"time"
 
 	iso8601duration "github.com/ChannelMeter/iso8601duration"
-	"github.com/icedream/irc-medialink/parsers"
 	"google.golang.org/api/googleapi/transport"
 	"google.golang.org/api/youtube/v3"
+
+	"github.com/icedream/irc-medialink/parsers"
 )
 
 const (
@@ -25,10 +26,8 @@ const (
 	header = "\x0301,00You\x0300,04Tube"
 )
 
-var (
-	// ErrNotFound is returned when a YouTube URL does not point at anything the API can find.
-	ErrNotFound = errors.New("not found")
-)
+// ErrNotFound is returned when a YouTube URL does not point at anything the API can find.
+var ErrNotFound = errors.New("not found")
 
 type youtubeReference uint8
 

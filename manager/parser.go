@@ -9,10 +9,8 @@ import (
 	"github.com/icedream/irc-medialink/parsers"
 )
 
-var (
-	// ErrAlreadyLoaded is returned when a parser attempting to register is already found to be loaded with the same ID.
-	ErrAlreadyLoaded = errors.New("already loaded")
-)
+// ErrAlreadyLoaded is returned when a parser attempting to register is already found to be loaded with the same ID.
+var ErrAlreadyLoaded = errors.New("already loaded")
 
 // Parser describes the core functionality of any parser used to analyze URLs.
 type Parser interface {
