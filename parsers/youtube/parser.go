@@ -47,18 +47,13 @@ func parseYouTubeURL(uri *url.URL, followRedirects int) (youtubeReference, strin
 		return nonYouTubeReference, ""
 	}
 
-	// Remove www. prefix from hostname
-	if strings.HasPrefix(u.Host, "www.") {
-		u.Host = u.Host[4:]
-	}
-
 	switch strings.ToLower(u.Host) {
 	case "youtu.be":
 		// http://youtu.be/{id}
 		if s, err := url.QueryUnescape(strings.TrimLeft(u.Path, "/")); err == nil {
 			return videoReference, s
 		}
-	case "youtube.com":
+	case "youtube.com", "www.youtube.com":
 		if u.Path == "/watch" {
 			// http://youtube.com/watch?v={id}
 			return videoReference, u.Query().Get("v")
