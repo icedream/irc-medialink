@@ -55,15 +55,15 @@
 	{{ if index . "IsProfile" }}
 		{{- if index . "Title" }}
 			{{ bold -}}
-			{{- index . "Title" }}
+			{{- excerpt 184 (index . "Title") }}
 			{{- if or (index . "Name") (index . "Description") -}}
 			:
-			{{- end -}}
+			{{- end }}
 			{{- bold }}
 		{{- end }}
 
 		{{ if index . "Name" }}
-			{{ excerpt 184 (index . "Name") }}
+			{{- excerpt 184 (index . "Name") }}
 			{{ if index . "Verified" }}
 				{{ template "verified" }}
 			{{ end }}
@@ -84,7 +84,10 @@
 			{{ end }}
 		{{ end }}
 
-		{{ with index . "Description" }}
+		{{- with index . "Description" }}
+			{{- if index $ "Name" }}
+			–
+			{{ end }}
 			{{ excerpt 128 . }}
 		{{ end }}
 	{{ else }}
