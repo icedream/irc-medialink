@@ -1,6 +1,7 @@
 package youtube
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -10,7 +11,7 @@ import (
 	"time"
 
 	iso8601duration "github.com/ChannelMeter/iso8601duration"
-	"google.golang.org/api/googleapi/transport"
+	"google.golang.org/api/option"
 	"google.golang.org/api/youtube/v3"
 
 	"github.com/icedream/irc-medialink/parsers"
@@ -99,10 +100,9 @@ func parseYouTubeURL(uri *url.URL, followRedirects int) (youtubeReference, strin
 // Init initializes the parser.
 func (p *Parser) Init() error {
 	// youtube api
-	client := &http.Client{
-		Transport: &transport.APIKey{Key: p.Config.APIKey},
-	}
-	srv, err := youtube.New(client)
+	srv, err := youtube.NewService(
+		context.TODO(),
+		option.WithAPIKey(p.Config.APIKey))
 	if err != nil {
 		return err
 	}
