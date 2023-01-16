@@ -66,7 +66,7 @@ func getChannelModes(channel string) string {
 
 func hasChannelMode(channel string, mode rune) bool {
 	modes := getChannelModes(channel)
-	return strings.IndexRune(modes, mode) >= 0
+	return strings.ContainsRune(modes, mode)
 }
 
 func deleteChannelModes(channel string) {
