@@ -30,38 +30,40 @@ func (m *Manager) TrackUser(target string, source string) (shouldIgnore bool) {
 	return
 }
 
-func (m *Manager) NotifyUserJoined(target string, source string) {
+func (m *Manager) NotifyUserJoined(target string, source string) error {
 	key := normalizeUserAntiflood(target, source)
 
 	// When a user joins, he will be ignored for the first 30 seconds,
 	// enough to prevent parsing links from people who only join to spam their
 	// links immediately
 	if _, exists := m.cache.Get(key); !exists {
-		m.cache.Add(key, nil, 30*time.Second)
+		return m.cache.Add(key, nil, 30*time.Second)
 	}
+
+	return nil
 }
 
-func (m *Manager) TrackUrl(target string, u *url.URL) (shouldIgnore bool) {
+func (m *Manager) TrackUrl(target string, u *url.URL) (shouldIgnore bool, err error) {
 	key := normalizeUrlAntiflood(target, u)
 
 	if _, ok := m.cache.Get(key); ok {
 		// The URL has been used recently, should ignore
 		shouldIgnore = true
 	} else {
-		m.cache.Add(key, nil, cache.DefaultExpiration)
+		err = m.cache.Add(key, nil, cache.DefaultExpiration)
 	}
 
 	return
 }
 
-func (m *Manager) TrackOutput(target, t string) (shouldNotSend bool) {
+func (m *Manager) TrackOutput(target, t string) (shouldNotSend bool, err error) {
 	key := normalizeTextAntiflood(target, t)
 
 	if _, ok := m.cache.Get(key); ok {
 		// The URL has been used recently, should ignore
 		shouldNotSend = true
 	} else {
-		m.cache.Add(key, nil, cache.DefaultExpiration)
+		err = m.cache.Add(key, nil, cache.DefaultExpiration)
 	}
 
 	return
@@ -132,7 +134,10 @@ type ircConnectionProxy struct {
 }
 
 func (proxy *ircConnectionProxy) Action(target, message string) {
-	if proxy.m.TrackOutput(target, message) {
+	if shouldNotSend, err := proxy.m.TrackOutput(target, message); err != nil {
+		log.Printf("WARNING: Output antiflood returned an error, dropping message for %s: %s", target, err.Error())
+		return
+	} else if shouldNotSend {
 		log.Printf("WARNING: Output antiflood triggered, dropping message for %s: %s", target, message)
 		return
 	}
@@ -145,7 +150,10 @@ func (proxy *ircConnectionProxy) Actionf(target, format string, a ...interface{}
 }
 
 func (proxy *ircConnectionProxy) Privmsg(target, message string) {
-	if proxy.m.TrackOutput(target, message) {
+	if shouldNotSend, err := proxy.m.TrackOutput(target, message); err != nil {
+		log.Printf("WARNING: Output antiflood returned an error, dropping message for %s: %s", target, err.Error())
+		return
+	} else if shouldNotSend {
 		log.Printf("WARNING: Output antiflood triggered, dropping message for %s: %s", target, message)
 		return
 	}
@@ -158,7 +166,10 @@ func (proxy *ircConnectionProxy) Privmsgf(target, format string, a ...interface{
 }
 
 func (proxy *ircConnectionProxy) Notice(target, message string) {
-	if proxy.m.TrackOutput(target, message) {
+	if shouldNotSend, err := proxy.m.TrackOutput(target, message); err != nil {
+		log.Printf("WARNING: Output antiflood returned an error, dropping message for %s: %s", target, err.Error())
+		return
+	} else if shouldNotSend {
 		log.Printf("WARNING: Output antiflood triggered, dropping message for %s: %s", target, message)
 		return
 	}

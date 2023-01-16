@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"go/format"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
@@ -65,14 +64,17 @@ func main() {
 	fmt.Println(filepath.Base(*flagYamlDefFile))
 
 	// Read YAML def
-	ymlBytes, err := ioutil.ReadFile(*flagYamlDefFile)
+	ymlBytes, err := os.ReadFile(*flagYamlDefFile)
 	if err != nil {
 		panic(err)
 	}
 
 	// Unmarshal YAML def
 	var ymlDef yamlDef
-	yaml.Unmarshal(ymlBytes, &ymlDef)
+	err = yaml.Unmarshal(ymlBytes, &ymlDef)
+	if err != nil {
+		panic(err)
+	}
 
 	b := new(bytes.Buffer)
 
@@ -150,5 +152,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	ioutil.WriteFile(outputFileName, fb, 0644)
+	err = os.WriteFile(outputFileName, fb, 0o644)
+	if err != nil {
+		panic(err)
+	}
 }

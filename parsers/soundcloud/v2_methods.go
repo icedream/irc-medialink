@@ -59,7 +59,10 @@ func (p *Parser) v2call(path string, urlvalues url.Values) (v2Result, error) {
 		return nil, errors.New(resp.Status)
 	}
 	b := new(bytes.Buffer)
-	io.Copy(b, resp.Body)
+	_, err = io.Copy(b, resp.Body)
+	if err != nil {
+		return nil, err
+	}
 	log.Printf("v2call: Response is %s", b.String())
 	return b.Bytes(), nil
 }

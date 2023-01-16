@@ -248,7 +248,9 @@ func main() {
 		// Is this JOIN not about us?
 		if !strings.EqualFold(e.Nick, conn.GetNick()) {
 			// Save this user's details for a temporary ignore
-			m.NotifyUserJoined(e.Arguments[0], e.Source)
+			if err := m.NotifyUserJoined(e.Arguments[0], e.Source); err != nil {
+				log.Printf("WARNING: User join handling returned an error, user can potentially trigger bot right away: %s", err.Error())
+			}
 			return
 		}
 
@@ -470,7 +472,11 @@ func main() {
 		}
 
 		// Check if this URL has been recently parsed before (antiflood)
-		shouldIgnore := m.TrackUrl(target, u)
+		shouldIgnore, err := m.TrackUrl(target, u)
+		if err != nil {
+			log.Printf("WARNING: URL antiflood returned error, dropping URL for %s: %s", target, err.Error())
+			return
+		}
 		if shouldIgnore {
 			log.Printf("WARNING: URL antiflood triggered, dropping URL for %s: %s", target, u)
 			return
