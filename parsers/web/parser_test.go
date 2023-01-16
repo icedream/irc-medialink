@@ -2,6 +2,7 @@ package web
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"html"
 	"image"
@@ -146,7 +147,7 @@ func getDefaultJPEGResponder() httpmock.Responder {
 func mustNewParser(t *testing.T) *Parser {
 	p := new(Parser)
 	p.Config = Config{}
-	if !assert.Nil(t, p.Init(), "Parser.Init must throw no errors") {
+	if !assert.Nil(t, p.Init(context.TODO()), "Parser.Init must throw no errors") {
 		panic("Can't run test without a proper parser")
 	}
 	return p
@@ -155,7 +156,7 @@ func mustNewParser(t *testing.T) *Parser {
 func parseWithTimeout(p *Parser, t *testing.T, timeout time.Duration, u *url.URL, ref *url.URL) (retval parsers.ParseResult) {
 	resultChan := make(chan parsers.ParseResult)
 	go func(resultChan chan<- parsers.ParseResult, p *Parser, u *url.URL, ref *url.URL) {
-		resultChan <- p.Parse(u, ref)
+		resultChan <- p.Parse(context.TODO(), u, ref)
 	}(resultChan, p, u, ref)
 
 	select {
@@ -181,7 +182,7 @@ func Test_Parser_Parse_Simple(t *testing.T) {
 		Host:   "example.com",
 		Path:   "/test",
 	}
-	result := p.Parse(originalURL, nil)
+	result := p.Parse(context.TODO(), originalURL, nil)
 
 	require.Equal(t, httpmock.GetTotalCallCount(), 1)
 
@@ -195,7 +196,7 @@ func Test_Parser_Parse_Simple(t *testing.T) {
 
 func Test_Parser_Parse_IRCBotScience_NoTitle(t *testing.T) {
 	p := mustNewParser(t)
-	result := p.Parse(&url.URL{
+	result := p.Parse(context.TODO(), &url.URL{
 		Scheme: "https",
 		Host:   "irc-bot-science.clsr.net",
 		Path:   "notitle",
@@ -268,7 +269,7 @@ func Test_Parser_Parse_IRCBotScience_Redirect(t *testing.T) {
 		Host:   "irc-bot-science.clsr.net",
 		Path:   "redirect",
 	}
-	result := p.Parse(originalURL, nil)
+	result := p.Parse(context.TODO(), originalURL, nil)
 
 	t.Logf("Result: %+v", result)
 	require.False(t, result.Ignored)
@@ -292,7 +293,7 @@ func Test_Parser_Parse_Hash(t *testing.T) {
 		Path:     "/test",
 		Fragment: "invalid",
 	}
-	result := p.Parse(originalURL, nil)
+	result := p.Parse(context.TODO(), originalURL, nil)
 
 	require.Equal(t, httpmock.GetTotalCallCount(), 1)
 
@@ -316,7 +317,7 @@ func Test_Parser_Parse_Image_GIF(t *testing.T) {
 		Host:   "example.com",
 		Path:   "/test",
 	}
-	result := p.Parse(originalURL, nil)
+	result := p.Parse(context.TODO(), originalURL, nil)
 
 	require.Equal(t, httpmock.GetTotalCallCount(), 1)
 
@@ -347,7 +348,7 @@ func Test_Parser_Parse_Image_PNG(t *testing.T) {
 		Host:   "example.com",
 		Path:   "/test",
 	}
-	result := p.Parse(originalURL, nil)
+	result := p.Parse(context.TODO(), originalURL, nil)
 
 	require.Equal(t, httpmock.GetTotalCallCount(), 1)
 
@@ -378,7 +379,7 @@ func Test_Parser_Parse_Image_JPEG(t *testing.T) {
 		Host:   "example.com",
 		Path:   "/test",
 	}
-	result := p.Parse(originalURL, nil)
+	result := p.Parse(context.TODO(), originalURL, nil)
 
 	require.Equal(t, httpmock.GetTotalCallCount(), 1)
 

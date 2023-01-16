@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"image"
@@ -44,7 +45,7 @@ type Parser struct {
 }
 
 // Init initializes this parser.
-func (p *Parser) Init() error {
+func (p *Parser) Init(_ context.Context) error {
 	if len(version.AppVersion) > 0 {
 		p.UserAgent = fmt.Sprintf("%s/%s", version.AppName, strings.TrimLeft(version.AppVersion, "v"))
 	} else {
@@ -97,7 +98,7 @@ func mimeTypeToName(imgType string) string {
 }
 
 // Parse analyzes a given URL.
-func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult) {
+func (p *Parser) Parse(ctx context.Context, u *url.URL, referer *url.URL) (result parsers.ParseResult) {
 	// Ignore non-HTTP link
 	if !strings.EqualFold(u.Scheme, "http") && !strings.EqualFold(u.Scheme, "https") {
 		result.Ignored = true
@@ -111,7 +112,7 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 	}
 
 	// Make request
-	req, err := http.NewRequest("GET", u.String(), nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
 	if err != nil {
 		result.Error = err
 		return

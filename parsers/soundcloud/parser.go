@@ -1,6 +1,7 @@
 package soundcloud
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -8,17 +9,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/icedream/irc-medialink/parsers"
 	"github.com/yanatan16/golang-soundcloud/soundcloud"
+
+	"github.com/icedream/irc-medialink/parsers"
 )
 
 const (
 	header = "\x0307SoundCloud\x03"
 )
 
-var (
-	emptyURLValues = url.Values{}
-)
+var emptyURLValues = url.Values{}
 
 // Parser implements parsing for SoundCloud URLs.
 type Parser struct {
@@ -28,7 +28,7 @@ type Parser struct {
 }
 
 // Init initializes the parser.
-func (p *Parser) Init() error {
+func (p *Parser) Init(_ context.Context) error {
 	p.api = &soundcloud.Api{
 		ClientId:     p.Config.ClientID,
 		ClientSecret: p.Config.ClientSecret,
@@ -44,14 +44,14 @@ func (p *Parser) Name() string {
 }
 
 // Parse parses the given URL.
-func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult) {
+func (p *Parser) Parse(ctx context.Context, u *url.URL, referer *url.URL) (result parsers.ParseResult) {
 	if !strings.EqualFold(u.Host, "soundcloud.com") &&
 		!strings.EqualFold(u.Host, "www.soundcloud.com") {
 		result.Ignored = true
 		return
 	}
 
-	r, err := p.v2resolve(u.String())
+	r, err := p.v2resolve(ctx, u.String())
 	if err != nil {
 		result.UserError = err
 		return

@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"context"
 	"errors"
 	"log"
 	"net/url"
@@ -14,9 +15,9 @@ var ErrAlreadyLoaded = errors.New("already loaded")
 
 // Parser describes the core functionality of any parser used to analyze URLs.
 type Parser interface {
-	Init() error
+	Init(ctx context.Context) error
 	Name() string
-	Parse(u *url.URL, referer *url.URL) parsers.ParseResult
+	Parse(ctx context.Context, u *url.URL, referer *url.URL) parsers.ParseResult
 }
 
 // GetParsers returns a slice of currently loaded parsers.
@@ -30,7 +31,7 @@ func (m *Manager) GetParsers() []Parser {
 }
 
 // RegisterParser is called by a parser package to register itself automatically.
-func (m *Manager) RegisterParser(parser Parser) error {
+func (m *Manager) RegisterParser(ctx context.Context, parser Parser) error {
 	m.stateLock.Lock()
 	defer m.stateLock.Unlock()
 
@@ -44,7 +45,7 @@ func (m *Manager) RegisterParser(parser Parser) error {
 
 	// Initialize parser
 	log.Printf("Initializing %s parser...", parser.Name())
-	if err := parser.Init(); err != nil {
+	if err := parser.Init(ctx); err != nil {
 		return err
 	}
 
@@ -55,7 +56,7 @@ func (m *Manager) RegisterParser(parser Parser) error {
 }
 
 // Parse goes through all loaded parsers in order to analyze a given URL.
-func (m *Manager) Parse(currentURL *url.URL) (string, parsers.ParseResult) {
+func (m *Manager) Parse(ctx context.Context, currentURL *url.URL) (string, parsers.ParseResult) {
 	var referer *url.URL
 	attempt := 0
 followLoop:
@@ -73,7 +74,8 @@ followLoop:
 			}
 			currentURLCopy := &url.URL{}
 			*currentURLCopy = *currentURL
-			r := p.Parse(currentURLCopy, refererCopy)
+			// TODO - implement individual timeouts
+			r := p.Parse(ctx, currentURLCopy, refererCopy)
 			if r.Ignored {
 				continue
 			}
@@ -84,14 +86,17 @@ followLoop:
 				}
 				referer = currentURL
 				currentURL = r.FollowURL
+				log.Printf("Redirect %s => %s", referer.String(), currentURL.String())
 				continue followLoop
 			}
+			log.Printf("Parser match %s - %s %+v", currentURL.String(), p.Name(), r)
 			return p.Name(), r
 		}
 		currentURL = nil
 	}
 
 	// No parser matches, link ignored
+	log.Printf("No parser match %s", currentURL)
 	return "", parsers.ParseResult{
 		Ignored: true,
 	}

@@ -35,8 +35,7 @@ type youtubeReference uint8
 
 // Parser implements parsing of YouTube URLs via API.
 type Parser struct {
-	Config  *Config
-	Service *youtube.Service
+	Config *Config
 }
 
 func parseYouTubeURL(uri *url.URL, followRedirects int) (youtubeReference, string) {
@@ -99,16 +98,22 @@ func parseYouTubeURL(uri *url.URL, followRedirects int) (youtubeReference, strin
 }
 
 // Init initializes the parser.
-func (p *Parser) Init() error {
+func (p *Parser) Init(_ context.Context) error {
+	if len(p.Config.APIKey) == 0 {
+		return errors.New("a YouTube API key is required")
+	}
+	return nil
+}
+
+func (p *Parser) getYouTubeService(ctx context.Context) (*youtube.Service, error) {
 	// youtube api
 	srv, err := youtube.NewService(
-		context.TODO(),
+		ctx,
 		option.WithAPIKey(p.Config.APIKey))
 	if err != nil {
-		return err
+		return nil, err
 	}
-	p.Service = srv
-	return nil
+	return srv, nil
 }
 
 // Name returns the parser's descriptive name.
@@ -117,7 +122,7 @@ func (p *Parser) Name() string {
 }
 
 // Parse parses the given URL.
-func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult) {
+func (p *Parser) Parse(ctx context.Context, u *url.URL, referer *url.URL) (result parsers.ParseResult) {
 	// Parse YouTube URL
 	idType, id := parseYouTubeURL(u, 2)
 	if idType == nonYouTubeReference {
@@ -125,10 +130,16 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 		return // nothing relevant found in this URL
 	}
 
+	service, err := p.getYouTubeService(ctx)
+	if err != nil {
+		result.Error = err
+		return
+	}
+
 	switch idType {
 	case videoReference:
 		// Get YouTube video info
-		list, err := p.Service.Videos.List([]string{
+		list, err := service.Videos.List([]string{
 			"contentDetails",
 			"id",
 			"liveStreamingDetails",
@@ -233,7 +244,7 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 		}
 	case channelIDReference, channelNameReference:
 		// Get YouTube channel info
-		cl := p.Service.Channels.List([]string{
+		cl := service.Channels.List([]string{
 			"id",
 			"snippet",
 			"statistics",
@@ -276,7 +287,7 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 		}
 	case playlistReference:
 		// Get YouTube channel info
-		list, err := p.Service.Playlists.List([]string{
+		list, err := service.Playlists.List([]string{
 			"id",
 			"snippet",
 		}).Id(id).Do()

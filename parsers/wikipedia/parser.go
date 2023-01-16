@@ -3,6 +3,7 @@ package wikipedia
 //go:generate go run ../../util/apigen/main.go --pkg wikipedia v1.yml
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -21,12 +22,12 @@ func (p *Parser) Name() string {
 }
 
 // Init initializes the parser.
-func (p *Parser) Init() error {
+func (p *Parser) Init(_ context.Context) error {
 	return nil
 }
 
 // Parse parses the given URL.
-func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult) {
+func (p *Parser) Parse(ctx context.Context, u *url.URL, referer *url.URL) (result parsers.ParseResult) {
 	if !(strings.EqualFold(u.Scheme, "http") ||
 		strings.EqualFold(u.Scheme, "https")) ||
 		(!strings.HasSuffix(strings.ToLower(u.Host), ".wikipedia.org") &&
@@ -49,7 +50,12 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 			strings.EqualFold(u.Host, "www.wikipedia.org") {
 			u.Host = "en.wikipedia.org"
 		}
-		r, err := http.Get("https://" + u.Host + "/api/rest_v1/page/summary/" + titleEscaped)
+		req, err := http.NewRequestWithContext(ctx, "GET", "https://"+u.Host+"/api/rest_v1/page/summary/"+titleEscaped, nil)
+		if err != nil {
+			result.Error = err
+			return
+		}
+		r, err := http.DefaultClient.Do(req)
 		if err != nil {
 			result.Error = err
 			return

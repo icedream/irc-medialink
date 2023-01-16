@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"crypto/tls"
 	"errors"
 	"fmt"
@@ -95,6 +96,8 @@ func main() {
 
 	var joinTimeout time.Duration = 3 * time.Minute
 
+	var parseTimeout time.Duration = 5 * time.Second
+
 	nickname := version.AppName
 	ident := strings.ToLower(version.AppName)
 	var nickservPw string
@@ -138,6 +141,8 @@ func main() {
 	kingpin.Flag("images", "Enables parsing links of images. Disabled by default for legal reasons.").BoolVar(&webEnableImages)
 	kingpin.Flag("web-language", "Which accepted languages to indicate to websites.").Default("*").StringVar(&webAcceptLanguage)
 
+	kingpin.Flag("parse-timeout", "The maximum duration for each link to be parsed.").Default("10s").DurationVar(&parseTimeout)
+
 	kingpin.Parse()
 
 	if len(nickname) == 0 {
@@ -150,12 +155,15 @@ func main() {
 	// Manager
 	m := manager.NewManager()
 
+	// Application context
+	ctx := context.TODO()
+
 	// Load youtube parser
 	if len(youtubeAPIKey) > 0 {
 		youtubeParser := &youtube.Parser{
 			Config: &youtube.Config{APIKey: youtubeAPIKey},
 		}
-		must(m.RegisterParser(youtubeParser))
+		must(m.RegisterParser(ctx, youtubeParser))
 	} else {
 		log.Println("No YouTube API key provided, YouTube parsing via API is disabled.")
 	}
@@ -168,7 +176,7 @@ func main() {
 				ClientSecret: soundcloudClientSecret,
 			},
 		}
-		must(m.RegisterParser(soundcloudParser))
+		must(m.RegisterParser(ctx, soundcloudParser))
 	} else {
 		log.Println("No SoundCloud client ID or secret provided, SoundCloud parsing via API is disabled.")
 	}
@@ -181,13 +189,13 @@ func main() {
 				ClientSecret: twitterClientSecret,
 			},
 		}
-		must(m.RegisterParser(twitterParser))
+		must(m.RegisterParser(ctx, twitterParser))
 	} else {
 		log.Println("No Twitter client ID or secret provided, Twitter parsing via API is disabled.")
 	}
 
 	// Load wikipedia parser
-	must(m.RegisterParser(new(wikipedia.Parser)))
+	must(m.RegisterParser(ctx, new(wikipedia.Parser)))
 
 	// Load reddit parser
 	redditParser := &reddit.Parser{
@@ -197,7 +205,7 @@ func main() {
 			RedditUsername: redditUsername,
 		},
 	}
-	must(m.RegisterParser(redditParser))
+	must(m.RegisterParser(ctx, redditParser))
 
 	// Load web parser
 	webParser := &web.Parser{
@@ -206,7 +214,7 @@ func main() {
 			EnableImages:   webEnableImages,
 		},
 	}
-	must(m.RegisterParser(webParser))
+	must(m.RegisterParser(ctx, webParser))
 
 	// IRC
 	conn := m.AntifloodIrcConn(irc.IRC(nickname, ident))
@@ -482,7 +490,9 @@ func main() {
 			return
 		}
 
-		_, result := m.Parse(u)
+		rctx, rcancel := context.WithTimeout(ctx, parseTimeout)
+		defer rcancel()
+		_, result := m.Parse(rctx, u)
 		if result.Error != nil {
 			log.Print(result.Error)
 		}

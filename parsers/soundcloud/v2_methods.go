@@ -4,6 +4,7 @@ package soundcloud
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"io"
@@ -42,15 +43,16 @@ func (p *Parser) v2url(path string, urlvalues url.Values) *url.URL {
 	return u
 }
 
-func (p *Parser) v2call(path string, urlvalues url.Values) (v2Result, error) {
-	resp, err := p.http.Do(&http.Request{
-		URL:    p.v2url(path, urlvalues),
-		Method: "GET",
-		Header: http.Header{
-			"Accept":     []string{"application/json"},
-			"User-Agent": []string{"Icedream-YouTubeIRC/0.0"}, // TODO - Versioning
-		},
-	})
+func (p *Parser) v2call(ctx context.Context, path string, urlvalues url.Values) (v2Result, error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", p.v2url(path, urlvalues).String(), nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header = http.Header{
+		"Accept":     []string{"application/json"},
+		"User-Agent": []string{"Icedream-YouTubeIRC/0.0"}, // TODO - Versioning
+	}
+	resp, err := p.http.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -67,8 +69,8 @@ func (p *Parser) v2call(path string, urlvalues url.Values) (v2Result, error) {
 	return b.Bytes(), nil
 }
 
-func (p *Parser) v2resolve(u string) (*v2ResolveResult, error) {
-	r, err := p.v2call("/resolve", url.Values{
+func (p *Parser) v2resolve(ctx context.Context, u string) (*v2ResolveResult, error) {
+	r, err := p.v2call(ctx, "/resolve", url.Values{
 		"url": []string{u},
 	})
 	if err != nil {

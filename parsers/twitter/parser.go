@@ -1,6 +1,7 @@
 package twitter
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -11,7 +12,6 @@ import (
 	"time"
 
 	"github.com/dghubble/go-twitter/twitter"
-	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
 
 	"github.com/icedream/irc-medialink/parsers"
@@ -28,24 +28,32 @@ var ErrNotFound = errors.New("not found")
 // Parser implements parsing of Twitter URLs.
 type Parser struct {
 	Config *Config
-	Client *twitter.Client
 }
 
 // Init initializes this parser.
-func (p *Parser) Init() error {
-	config := &clientcredentials.Config{
-		ClientID:     p.Config.ClientID,
-		ClientSecret: p.Config.ClientSecret,
-		TokenURL:     "https://api.twitter.com/oauth2/token",
+func (p *Parser) Init(ctx context.Context) error {
+	if len(p.Config.ClientID) == 0 {
+		return errors.New("a Twitter client ID is required")
 	}
-	httpClient := config.Client(oauth2.NoContext)
-	p.Client = twitter.NewClient(httpClient)
+	if len(p.Config.ClientSecret) == 0 {
+		return errors.New("a Twitter client secret is required")
+	}
 	return nil
 }
 
 // Name returns the parser's descriptive name.
 func (p *Parser) Name() string {
 	return "Twitter"
+}
+
+func (p *Parser) getTwitterClient(ctx context.Context) *twitter.Client {
+	config := &clientcredentials.Config{
+		ClientID:     p.Config.ClientID,
+		ClientSecret: p.Config.ClientSecret,
+		TokenURL:     "https://api.twitter.com/oauth2/token",
+	}
+	httpClient := config.Client(ctx)
+	return twitter.NewClient(httpClient)
 }
 
 type twitterReferenceType byte
@@ -89,13 +97,15 @@ func parseTwitterURL(uri *url.URL) (twitterReferenceType, string) {
 }
 
 // Parse parses the given URL.
-func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult) {
+func (p *Parser) Parse(ctx context.Context, u *url.URL, referer *url.URL) (result parsers.ParseResult) {
 	// Parse Twitter URL
 	idType, id := parseTwitterURL(u)
 	if idType == nonTwitterReference {
 		result.Ignored = true
 		return // nothing relevant found in this URL
 	}
+
+	client := p.getTwitterClient(ctx)
 
 	switch idType {
 	case tweetReference:
@@ -104,7 +114,7 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 			result.Error = err
 			return
 		}
-		tweet, resp, err := p.Client.Statuses.Show(id, &twitter.StatusShowParams{})
+		tweet, resp, err := client.Statuses.Show(id, &twitter.StatusShowParams{})
 		if err != nil {
 			result.Error = err
 			return
@@ -148,7 +158,7 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 		result.Information = append(result.Information, r)
 
 	case profileReference:
-		user, resp, err := p.Client.Users.Show(&twitter.UserShowParams{
+		user, resp, err := client.Users.Show(&twitter.UserShowParams{
 			ScreenName: id,
 		})
 		if err != nil {

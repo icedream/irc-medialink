@@ -28,7 +28,7 @@ type Parser struct {
 }
 
 // Init initializes this parser.
-func (p *Parser) Init() error {
+func (p *Parser) Init(_ context.Context) error {
 	// <platform>:<app ID>:<version string> (by /u/<reddit username>)
 	// TODO make username configurable
 	userAgent := fmt.Sprintf("%s:%s:%s (by /u/%s)", runtime.GOOS, "tech.icedream.medialink", strings.TrimLeft(version.AppVersion, "v"), p.Config.RedditUsername)
@@ -75,9 +75,7 @@ var (
 )
 
 // Parse parses the given URL.
-func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult) {
-	ctx := context.TODO()
-
+func (p *Parser) Parse(ctx context.Context, u *url.URL, referer *url.URL) (result parsers.ParseResult) {
 	if !strings.EqualFold(u.Host, "reddit.com") &&
 		!strings.EqualFold(u.Host, "www.reddit.com") {
 		result.Ignored = true
