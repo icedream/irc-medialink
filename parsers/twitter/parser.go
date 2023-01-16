@@ -65,12 +65,6 @@ func parseTwitterURL(uri *url.URL) (twitterReferenceType, string) {
 	if u.Scheme != "http" && u.Scheme != "https" {
 		return nonTwitterReference, ""
 	}
-
-	// Remove www. prefix from hostname
-	if strings.HasPrefix(u.Host, "www.") {
-		u.Host = u.Host[4:]
-	}
-
 	/*
 		Examples of valid links:
 		- https://twitter.com/random_carl/status/1273087230526054402
@@ -80,7 +74,7 @@ func parseTwitterURL(uri *url.URL) (twitterReferenceType, string) {
 	*/
 
 	switch strings.ToLower(u.Host) {
-	case "twitter.com":
+	case "www.twitter.com", "twitter.com":
 		parts := strings.Split(strings.TrimPrefix(u.Path, "/"), "/")
 		if len(parts) == 1 { // /:username
 			return profileReference, parts[0]
