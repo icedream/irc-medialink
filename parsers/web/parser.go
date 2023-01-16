@@ -268,9 +268,9 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 			if len(m.FirstName) > 0 && len(m.LastName) > 0 {
 				info["Name"] = fmt.Sprintf("%s %s", m.FirstName, m.LastName)
 			} else if len(m.FirstName) > 0 {
-				info["Name"] = fmt.Sprintf("%s", m.FirstName)
+				info["Name"] = m.FirstName
 			} else if len(m.LastName) > 0 {
-				info["Name"] = fmt.Sprintf("%s", m.LastName)
+				info["Name"] = m.LastName
 			} else if len(m.Username) > 0 {
 				info["Name"] = m.Username
 			}
