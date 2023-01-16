@@ -22,10 +22,8 @@ const (
 	header = "\x0300,02Twitter"
 )
 
-var (
-	// ErrNotFound is returned when a URL points to something that the Twitter API can not find.
-	ErrNotFound = errors.New("not found")
-)
+// ErrNotFound is returned when a URL points to something that the Twitter API can not find.
+var ErrNotFound = errors.New("not found")
 
 // Parser implements parsing of Twitter URLs.
 type Parser struct {

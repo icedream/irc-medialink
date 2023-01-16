@@ -47,10 +47,9 @@ var (
 <h1>Testing</h1>
 </body>
 </html>`, html.EscapeString(validTestHTMLTitle))
-	validTestImage image.Image
-	validTestGIF   []byte
-	validTestPNG   []byte
-	validTestJPEG  []byte
+	validTestGIF  []byte
+	validTestPNG  []byte
+	validTestJPEG []byte
 )
 
 func init() {

@@ -29,10 +29,9 @@ type Parser struct {
 
 // Init initializes this parser.
 func (p *Parser) Init() error {
-	var userAgent string
 	// <platform>:<app ID>:<version string> (by /u/<reddit username>)
 	// TODO make username configurable
-	userAgent = fmt.Sprintf("%s:%s:%s (by /u/%s)", runtime.GOOS, "tech.icedream.medialink", strings.TrimLeft(version.AppVersion, "v"), p.Config.RedditUsername)
+	userAgent := fmt.Sprintf("%s:%s:%s (by /u/%s)", runtime.GOOS, "tech.icedream.medialink", strings.TrimLeft(version.AppVersion, "v"), p.Config.RedditUsername)
 	log.Println("Using user agent:", userAgent)
 
 	var err error

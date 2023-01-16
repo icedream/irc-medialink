@@ -9,8 +9,10 @@ const (
 	colorBlock = "c"
 )
 
-var channelModes = map[string]string{}
-var channelModeLock sync.RWMutex
+var (
+	channelModes    = map[string]string{}
+	channelModeLock sync.RWMutex
+)
 
 func setChannelMode(channel string, mode rune) {
 	channelModeLock.Lock()
@@ -29,6 +31,7 @@ func setChannelMode(channel string, mode rune) {
 	modes += string(mode)
 	channelModes[channel] = modes
 }
+
 func resetChannelModes(channel string) {
 	channelModeLock.Lock()
 	defer channelModeLock.Unlock()
@@ -36,6 +39,7 @@ func resetChannelModes(channel string) {
 
 	channelModes[channel] = ""
 }
+
 func unsetChannelMode(channel string, mode rune) {
 	channelModeLock.Lock()
 	defer channelModeLock.Unlock()
@@ -48,6 +52,7 @@ func unsetChannelMode(channel string, mode rune) {
 	}
 	channelModes[channel] = modes
 }
+
 func getChannelModes(channel string) string {
 	channelModeLock.RLock()
 	defer channelModeLock.RUnlock()
@@ -58,10 +63,12 @@ func getChannelModes(channel string) string {
 	}
 	return retval
 }
+
 func hasChannelMode(channel string, mode rune) bool {
 	modes := getChannelModes(channel)
 	return strings.IndexRune(modes, mode) >= 0
 }
+
 func deleteChannelModes(channel string) {
 	channelModeLock.Lock()
 	defer channelModeLock.Unlock()

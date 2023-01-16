@@ -17,17 +17,15 @@ type v2Kind string
 
 const (
 	// FIXME - not yet supported
-	//v2KindApp      v2Kind = "app"
+	// v2KindApp      v2Kind = "app"
 	v2KindGroup    v2Kind = "group"
 	v2KindPlaylist v2Kind = "playlist"
 	v2KindTrack    v2Kind = "track"
 	v2KindUser     v2Kind = "user"
 )
 
-var (
-	// ErrUnsupportedKind is returned if the parser can't detect what type of reference a SoundCloud URL is pointing to.
-	ErrUnsupportedKind = errors.New("Unsupported kind")
-)
+// ErrUnsupportedKind is returned if the parser can't detect what type of reference a SoundCloud URL is pointing to.
+var ErrUnsupportedKind = errors.New("Unsupported kind")
 
 func (p *Parser) v2url(path string, urlvalues url.Values) *url.URL {
 	u := &url.URL{

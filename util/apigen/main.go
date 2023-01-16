@@ -9,10 +9,9 @@ import (
 	"path/filepath"
 	"sort"
 
+	"github.com/serenize/snaker"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"gopkg.in/yaml.v2"
-
-	"github.com/serenize/snaker"
 )
 
 var (
@@ -91,9 +90,9 @@ func main() {
 
 	// Write types
 	registeredTypes := make(map[string]interface{})
-	//var ensureType func(string)
+	// var ensureType func(string)
 	generateType := func(name string, definition *yamlTypeDef) {
-		//id := snaker.SnakeToCamel(name)
+		// id := snaker.SnakeToCamel(name)
 
 		/*for _, fieldType := range definition.Fields {
 			ensureType(fieldType)
@@ -108,7 +107,7 @@ func main() {
 
 		// Fields (sorted alphabetically)
 		var keys []string
-		for k, _ := range definition.Fields {
+		for k := range definition.Fields {
 			keys = append(keys, k)
 		}
 		sort.Strings(keys)
@@ -133,7 +132,7 @@ func main() {
 	}*/
 
 	var keys []string
-	for k, _ := range ymlDef.Kinds {
+	for k := range ymlDef.Kinds {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
@@ -146,7 +145,7 @@ func main() {
 	}
 
 	// Write out formatted source code
-	//fmt.Println(string(b.Bytes()))
+	// fmt.Println(string(b.Bytes()))
 	fb, err := format.Source(b.Bytes())
 	if err != nil {
 		panic(err)
