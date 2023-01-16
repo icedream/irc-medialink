@@ -8,9 +8,10 @@ import (
 	"strings"
 	"time"
 
+	cache "github.com/patrickmn/go-cache"
 	irc "github.com/thoj/go-ircevent"
 
-	cache "github.com/patrickmn/go-cache"
+	"github.com/icedream/irc-medialink/util/clone"
 )
 
 func (m *Manager) initAntiflood() {
@@ -70,7 +71,7 @@ func (m *Manager) AntifloodIrcConn(c *irc.Connection) *ircConnectionProxy {
 }
 
 func normalizeUrlAntiflood(target string, u *url.URL) string {
-	uc := &(*u)
+	uc := clone.CloneURL(u)
 
 	// Normalize host
 	uc.Host = strings.ToLower(uc.Host)

@@ -15,6 +15,7 @@ import (
 	"google.golang.org/api/youtube/v3"
 
 	"github.com/icedream/irc-medialink/parsers"
+	"github.com/icedream/irc-medialink/util/clone"
 )
 
 const (
@@ -39,7 +40,7 @@ type Parser struct {
 }
 
 func parseYouTubeURL(uri *url.URL, followRedirects int) (youtubeReference, string) {
-	u := &(*uri)
+	u := clone.CloneURL(uri)
 	u.Scheme = strings.ToLower(u.Scheme)
 	u.Host = strings.ToLower(u.Host)
 

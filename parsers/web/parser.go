@@ -20,6 +20,7 @@ import (
 	"golang.org/x/net/html/atom"
 
 	"github.com/icedream/irc-medialink/parsers"
+	"github.com/icedream/irc-medialink/util/clone"
 	"github.com/icedream/irc-medialink/util/limitedio"
 	"github.com/icedream/irc-medialink/version"
 )
@@ -105,7 +106,7 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 
 	// Remove fragment from URL since that's not meant to be in the request
 	if len(u.Fragment) > 0 {
-		u = &(*u)
+		u = clone.CloneURL(u)
 		u.Fragment = ""
 	}
 

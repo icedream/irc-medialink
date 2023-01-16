@@ -10,11 +10,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/icedream/irc-medialink/parsers"
-
 	"github.com/dghubble/go-twitter/twitter"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
+
+	"github.com/icedream/irc-medialink/parsers"
+	"github.com/icedream/irc-medialink/util/clone"
 )
 
 const (
@@ -58,7 +59,7 @@ const (
 )
 
 func parseTwitterURL(uri *url.URL) (twitterReferenceType, string) {
-	u := &(*uri)
+	u := clone.CloneURL(uri)
 	u.Scheme = strings.ToLower(u.Scheme)
 	u.Host = strings.ToLower(u.Host)
 
