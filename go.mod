@@ -6,6 +6,7 @@ require (
 	github.com/ChannelMeter/iso8601duration v0.0.0-20150204201828-8da3af7a2a61
 	github.com/dghubble/go-twitter v0.0.0-20221104224141-912508c3888b
 	github.com/dustin/go-humanize v1.0.0
+	github.com/dyatlov/go-opengraph/opengraph v0.0.0-20220524092352-606d7b1e5f8a
 	github.com/jarcoal/httpmock v1.2.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/serenize/snaker v0.0.0-20201027110005-a7ad2135616e
@@ -38,7 +39,6 @@ require (
 	github.com/channelmeter/iso8601duration v0.0.0-20150204201828-8da3af7a2a61 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dghubble/sling v1.4.0 // indirect
-	github.com/dyatlov/go-opengraph/opengraph v0.0.0-20220524092352-606d7b1e5f8a
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect

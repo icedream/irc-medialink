@@ -170,7 +170,21 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 			if meta.Attr != nil {
 				m := make(map[string]string)
 				for _, a := range meta.Attr {
-					m[atom.String([]byte(a.Key))] = a.Val
+					// HACK - always prefix with og:.
+					//
+					// For some reason, the library expects og: prefix even
+					// though that's not always the case in the opengraph
+					// standard.
+					k := atom.String([]byte(a.Key))
+					v := a.Val
+					if k == "property" && (strings.HasPrefix(v, "article:") ||
+						strings.HasPrefix(v, "book:") ||
+						strings.HasPrefix(v, "music:") ||
+						strings.HasPrefix(v, "profile:") ||
+						strings.HasPrefix(v, "video:")) {
+						v = "og:" + v
+					}
+					m[k] = v
 				}
 				og.ProcessMeta(m)
 			}
@@ -247,9 +261,17 @@ func (p *Parser) Parse(u *url.URL, referer *url.URL) (result parsers.ParseResult
 				result.Information = append(result.Information, info)
 			}
 			info["IsProfile"] = true
-			info["Name"] = fmt.Sprintf("%s %s", m.FirstName, m.LastName)
-			if len(m.Username) > 0 {
-				info["Title"] = m.Username
+			info["FirstName"] = m.FirstName
+			info["LastName"] = m.LastName
+			info["Username"] = m.Username
+			if len(m.FirstName) > 0 && len(m.LastName) > 0 {
+				info["Name"] = fmt.Sprintf("%s %s", m.FirstName, m.LastName)
+			} else if len(m.FirstName) > 0 {
+				info["Name"] = fmt.Sprintf("%s", m.FirstName)
+			} else if len(m.LastName) > 0 {
+				info["Name"] = fmt.Sprintf("%s", m.LastName)
+			} else if len(m.Username) > 0 {
+				info["Name"] = m.Username
 			}
 			info["Gender"] = m.Gender
 		}
