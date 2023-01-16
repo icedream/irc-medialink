@@ -23,7 +23,7 @@ const (
 	channelIDReference
 	playlistReference
 
-	header = "\x0301,00You\x0300,04Tube"
+	header = "\x0300,04 ► \x0399,99\u2009YouTube"
 )
 
 // ErrNotFound is returned when a YouTube URL does not point at anything the API can find.
