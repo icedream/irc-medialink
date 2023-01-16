@@ -10,6 +10,7 @@ import (
 
 	cache "github.com/patrickmn/go-cache"
 	irc "github.com/thoj/go-ircevent"
+	"golang.org/x/net/idna"
 
 	"github.com/icedream/irc-medialink/util/clone"
 )
@@ -73,17 +74,34 @@ func (m *Manager) AntifloodIrcConn(c *irc.Connection) *ircConnectionProxy {
 func normalizeUrlAntiflood(target string, u *url.URL) string {
 	uc := clone.CloneURL(u)
 
-	// Normalize host
+	// Normalize hostname punycode.
+	//
+	// Ignoring the error is correct here since we still want to work with a
+	// partially converted hostname. See idna docs.
+	uc.Host, _ = idna.Punycode.ToASCII(uc.Host)
+
+	// Normalize hostname casing
 	uc.Host = strings.ToLower(uc.Host)
-	if strings.HasPrefix(uc.Host, "www.") {
-		uc.Host = uc.Host[4:]
-	}
 
 	// Normalize query
 	uc.RawQuery = uc.Query().Encode()
 
+	// Normalize scheme
+	uc.Scheme = strings.ToLower(uc.Scheme)
+
+	// Fill in default ports if none were passed in this URL
+	if len(uc.Port()) == 0 {
+		uc.Host = strings.TrimSuffix(uc.Host, ":")
+		switch uc.Scheme {
+		case "http":
+			uc.Host += ":80"
+		case "https":
+			uc.Host += ":443"
+		}
+	}
+
 	s := sha512.New()
-	s.Write([]byte(u.String()))
+	s.Write([]byte(uc.String()))
 	return fmt.Sprintf("LINK/%s/%X", strings.ToUpper(target), s.Sum([]byte{}))
 }
 
