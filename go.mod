@@ -20,7 +20,7 @@ require (
 	google.golang.org/api v0.106.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/neurosnap/sentences.v1 v1.0.7
-	gopkg.in/yaml.v2 v2.4.0
+	gopkg.in/yaml.v3 v3.0.1
 	mvdan.cc/xurls v1.1.0
 )
 
@@ -45,10 +45,11 @@ require (
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.1 // indirect
 	github.com/googleapis/gax-go/v2 v2.7.0 // indirect
+	github.com/hpcloud/tail v1.0.0 // indirect
 	github.com/mvdan/xurls v1.1.0 // indirect
 	github.com/neurosnap/sentences v1.0.6 // indirect
 	github.com/onsi/ginkgo v1.9.0 // indirect
-	github.com/onsi/gomega v1.6.0 // indirect
+	github.com/onsi/gomega v1.24.2 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/sys v0.4.0 // indirect
@@ -57,7 +58,8 @@ require (
 	google.golang.org/genproto v0.0.0-20221227171554-f9683d7f8bef // indirect
 	google.golang.org/grpc v1.51.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
+	gopkg.in/fsnotify.v1 v1.4.7 // indirect
+	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 )
 
 replace github.com/vartanbeno/go-reddit/v2 v2.0.1 => github.com/and3rson/go-reddit/v2 v2.0.1-0.20210730203358-83240db9f66d

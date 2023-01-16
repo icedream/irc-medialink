@@ -10,7 +10,7 @@ import (
 
 	"github.com/serenize/snaker"
 	"gopkg.in/alecthomas/kingpin.v2"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 var (
