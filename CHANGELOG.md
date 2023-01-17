@@ -13,6 +13,9 @@ Types of changes are:
 * **Fixed** for any bug fixes.
 
 ## [Unreleased]
+
+
+## [1.2.0] - 2023-01-17
 ### Added
 * Implement Open Graph support.
 * Allow configuration of accepted languages for websites (`--web-language=…`, defaults to `*`).
@@ -119,14 +122,15 @@ Types of changes are:
 * Add parsing of image links.
 * Add handling of generic HTML pages, will print title.
 
-[Unreleased]: https://github.com/icedream/irc-medialink/compare/v1.1.2..vHEAD
+[Unreleased]: https://github.com/icedream/irc-medialink/compare/v1.2.0..vHEAD
+[1.2.0]: https://github.com/icedream/irc-medialink/compare/v1.1.3..v1.2.0
+[1.1.3]: https://github.com/icedream/irc-medialink/compare/v1.1.2..v1.1.3
 [1.1.2]: https://github.com/icedream/irc-medialink/compare/v1.1.1..v1.1.2
 [1.1.1]: https://github.com/icedream/irc-medialink/compare/v1.1.0..v1.1.1
 [1.1.0]: https://github.com/icedream/irc-medialink/compare/v1.0.2..v1.1.0
 [1.0.1]: https://github.com/icedream/irc-medialink/compare/v1.0.0..v1.0.1
 [1.0.0]: https://github.com/icedream/irc-medialink/releases/v1.0.0
 [1.0.2]: https://github.com/icedream/irc-medialink/compare/v1.0.1..v1.0.2
-[1.1.3]: https://github.com/icedream/irc-medialink/compare/v1.1.2..v1.1.3
 
 [Keep a Changelog]: http://keepachangelog.com/en/1.0.0/
 [Semantic Versioning]: http://semver.org/spec/v2.0.0.html
