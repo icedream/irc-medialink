@@ -198,14 +198,18 @@ func main() {
 	must(m.RegisterParser(ctx, new(wikipedia.Parser)))
 
 	// Load reddit parser
-	redditParser := &reddit.Parser{
-		Config: &reddit.Config{
-			ClientID:       redditClientID,
-			ClientSecret:   redditClientSecret,
-			RedditUsername: redditUsername,
-		},
+	if len(redditClientID) > 0 && len(redditClientSecret) > 0 {
+		redditParser := &reddit.Parser{
+			Config: &reddit.Config{
+				ClientID:       redditClientID,
+				ClientSecret:   redditClientSecret,
+				RedditUsername: redditUsername,
+			},
+		}
+		must(m.RegisterParser(ctx, redditParser))
+	} else {
+		log.Println("No Reddit client ID or secret provided, Reddit parsing via API is disabled.")
 	}
-	must(m.RegisterParser(ctx, redditParser))
 
 	// Load web parser
 	webParser := &web.Parser{
