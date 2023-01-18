@@ -13,7 +13,9 @@ Types of changes are:
 * **Fixed** for any bug fixes.
 
 ## [Unreleased]
-
+### Changed
+- Web parser will now scan for `og:url` (canonical URL) of a page and do a
+  second request against it.
 
 ## [1.2.0] - 2023-01-17
 ### Added

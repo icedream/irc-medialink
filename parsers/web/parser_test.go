@@ -35,8 +35,8 @@ var (
 <head>
 <meta property="og:title" content="%s">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://example.com/">
-<meta property="og:image" content="https://example.com/logo.png">
+<meta property="og:url" content="http://example.com/test">
+<meta property="og:image" content="http://example.com/logo.png">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="300">
 <meta property="og:image:height" content="300">

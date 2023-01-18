@@ -192,6 +192,19 @@ func (p *Parser) Parse(ctx context.Context, u *url.URL, referer *url.URL) (resul
 			}
 		}
 
+		// Check for canonical URL
+		if len(og.URL) > 0 {
+			canonicalURL, err := url.Parse(og.URL)
+			if err == nil && canonicalURL.String() != u.String() {
+				// Parse canonical URL instead, give other parsers a chance.
+				//
+				// NOTE - YouTube parser needs this so we can detect
+				// youtube.com/@alias URLs as channels reliably.
+				result.FollowURL = canonicalURL
+				return
+			}
+		}
+
 		result.Information = []map[string]interface{}{
 			{
 				"Description": og.Description,
