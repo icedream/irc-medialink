@@ -117,6 +117,13 @@
 					({{ . }})
 				{{ end }}
 			{{ end }}
+
+			{{ if index . "IsArticle" }}
+				{{- with index . "Description" }}
+					–
+					{{ excerpt 128 . }}
+				{{ end }}
+			{{ end }}
 		{{ else }}
 			{{ with index . "Description" }}
 				{{ excerpt 384 . }}

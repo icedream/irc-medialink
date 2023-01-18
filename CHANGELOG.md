@@ -31,6 +31,8 @@ Types of changes are:
   format will look like this with `<version>` being the MediaLink version:
 
   `Mozilla/5.0 (compatible; MediaLink/<version>; bot; Go-http-client/1.1; like WhatsApp/2.*; +https://github.com/icedream/irc-medialink) MediaLink/<version>`
+- URLs marked as articles in Open Graph (e. g. Twitter and Mastodon posts, blog
+  pages…) will now have an excerpt of the description included in chat.
 
 ## [1.2.0] - 2023-01-17
 ### Added
