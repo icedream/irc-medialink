@@ -35,7 +35,7 @@ var (
 
 const (
 	noTitleStr  = "(no title)"
-	maxHTMLSize = 32 * 1024
+	maxHTMLSize = 1024 * 1024
 )
 
 // Parser implements parsing of standard HTML web pages.

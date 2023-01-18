@@ -13,9 +13,16 @@ Types of changes are:
 * **Fixed** for any bug fixes.
 
 ## [Unreleased]
+### Fixed
+- `https://youtube.com/@alias` style URLs now are properly detected as channels.
+
 ### Changed
 - Web parser will now scan for `og:url` (canonical URL) of a page and do a
-  second request against it.
+  second request against it. This is necessary for the detection of
+  `https://youtube.com/@alias` style URLs.
+- The maximum HTML body size parsed by the web parser has been increased to 1 MB
+  as YouTube's Open Graph meta tags are embedded a lot further into the document
+  than usual.
 
 ## [1.2.0] - 2023-01-17
 ### Added
