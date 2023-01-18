@@ -23,6 +23,12 @@ Types of changes are:
 - The maximum HTML body size parsed by the web parser has been increased to 1 MB
   as YouTube's Open Graph meta tags are embedded a lot further into the document
   than usual.
+- Web parser will now use a more descriptive user agent, including segments that
+  match better against known crawler patterns. This should improve parsing of
+  websites which would otherwise require user interaction. The new user agent
+  format will look like this with `<version>` being the MediaLink version:
+
+  `Mozilla/5.0 (compatible; MediaLink/<version>; bot; Go-http-client/1.1; like WhatsApp/2.*; +https://github.com/icedream/irc-medialink) MediaLink/<version>`
 
 ## [1.2.0] - 2023-01-17
 ### Added

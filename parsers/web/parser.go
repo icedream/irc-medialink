@@ -52,8 +52,11 @@ func (p *Parser) Init(_ context.Context) error {
 		p.UserAgent = version.AppName
 	}
 
-	// Turn out HTTP user agent into something that is more "common" and less likely to be blacklisted
-	p.UserAgent = fmt.Sprintf("Mozilla/5.0 (compatible; actually an IRC bot) %s", p.UserAgent)
+	// Change HTTP user agent into something that is more "common" and less
+	// likely to be blacklisted. We still want to be descriptive just in case
+	// someone checks the logs.
+	p.UserAgent = fmt.Sprintf("Mozilla/5.0 (compatible; %s; bot; Go-http-client/1.1; like WhatsApp/2.*; +https://github.com/icedream/irc-medialink) %s",
+		p.UserAgent, p.UserAgent)
 	return nil
 }
 
