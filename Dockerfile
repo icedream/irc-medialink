@@ -6,11 +6,14 @@ RUN apk add --no-cache \
 ENV CGO_ENABLED 0
 
 WORKDIR /usr/src/medialink
+# download dependencies (separate cache layer)
 COPY go.mod go.sum ./
-RUN go mod download
-COPY . .
+RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=secret,id=mynetrc,dst=/root/.netrc --mount=type=secret,id=myknownhosts,dst=/root/.ssh/known_hosts --mount=type=ssh go mod download
+# compile rest of code and install to /target for copying to final image
+COPY ./ ./
 ARG APPLICATION_NAME
-RUN EXTRA_LDFLAGS='-extldflags -static' ./build.sh -o /irc-medialink
+RUN --mount=type=cache,target=/root/.cache/go-build \
+	EXTRA_LDFLAGS='-extldflags -static' ./build.sh -o /irc-medialink
 RUN cp *.tpl /
 
 ###
