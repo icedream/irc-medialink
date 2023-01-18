@@ -26,5 +26,6 @@ _test
 # Configurations
 config.yml
 secrets.yml
+.env
 
 **/_testmain.go

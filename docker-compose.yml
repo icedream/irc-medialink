@@ -1,0 +1,24 @@
+version: "3.7"
+
+services:
+  medialink:
+    build: .
+    image: registry.int.serverkomplex.de/icedream/irc-medialink:latest
+    command:
+      - --debug
+      - --youtube-key=${YOUTUBE_KEY:-}
+      - --soundcloud-id=${SOUNDCLOUD_ID:-}
+      - --soundcloud-secret=${SOUNDCLOUD_SECRET:-}
+      - --twitter-id=${TWITTER_ID:-}
+      - --twitter-secret=${TWITTER_SECRET:-}
+      - --reddit-id=${REDDIT_ID:-}
+      - --reddit-secret=${REDDIT_SECRET:-}
+      - --reddit-username=${REDDIT_USERNAME:-}
+      - --server=irc.rizon.net:6697
+      - --tls
+      - --nick=MediaLink|Dev
+      - --ident=medialink
+      - --channels=#MediaLink
+      - --images
+      - --no-invite
+    restart: always
