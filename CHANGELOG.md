@@ -15,6 +15,8 @@ Types of changes are:
 ## [Unreleased]
 ### Fixed
 - `https://youtube.com/@alias` style URLs now are properly detected as channels.
+- Fix Japanese text excerpts sometimes cutting off text in the middle of
+  multibyte characters, turning them into placeholder characters.
 
 ### Changed
 - Web parser will now scan for `og:url` (canonical URL) of a page and do a

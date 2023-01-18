@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/dustin/go-humanize"
+	"golang.org/x/exp/utf8string"
 )
 
 var (
@@ -52,8 +53,9 @@ var (
 			return no
 		},
 		"excerpt": func(maxLength uint16, text string) string {
-			if len(text) > int(maxLength) {
-				return text[0:maxLength-1] + "\u2026"
+			utf8str := utf8string.NewString(text)
+			if utf8str.RuneCount() > int(maxLength) {
+				return utf8str.Slice(0, int(maxLength-1)) + "\u2026"
 			}
 			return text
 		},
