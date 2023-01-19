@@ -25,6 +25,7 @@ Types of changes are:
 - The maximum HTML body size parsed by the web parser has been increased to 1 MB
   as YouTube's Open Graph meta tags are embedded a lot further into the document
   than usual.
+- YouTube parser now parses URLs to shorts (`https://youtube.com/shorts/<id>`).
 - Web parser will now use a more descriptive user agent, including segments that
   match better against known crawler patterns. This should improve parsing of
   websites which would otherwise require user interaction. The new user agent
