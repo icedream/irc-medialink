@@ -14,29 +14,32 @@ Types of changes are:
 
 ## [Unreleased]
 ### Added
-- Templates no longer need to be installed alongside the binary. Defaults are
+* Templates no longer need to be installed alongside the binary. Defaults are
   precompiled into the binary.
-### Fixed
-- `https://youtube.com/@alias` style URLs now are properly detected as channels.
-- Fix Japanese text excerpts sometimes cutting off text in the middle of
-  multibyte characters, turning them into placeholder characters.
 
 ### Changed
-- Web parser will now scan for `og:url` (canonical URL) of a page and do a
+* Web parser will now scan for `og:url` (canonical URL) of a page and do a
   second request against it. This is necessary for the detection of
   `https://youtube.com/@alias` style URLs.
-- The maximum HTML body size parsed by the web parser has been increased to 1 MB
+* The maximum HTML body size parsed by the web parser has been increased to 1 MB
   as YouTube's Open Graph meta tags are embedded a lot further into the document
   than usual.
-- YouTube parser now parses URLs to shorts (`https://youtube.com/shorts/<id>`).
-- Web parser will now use a more descriptive user agent, including segments that
+* YouTube parser now parses URLs to shorts (`https://youtube.com/shorts/<id>`).
+* Web parser will now use a more descriptive user agent, including segments that
   match better against known crawler patterns. This should improve parsing of
   websites which would otherwise require user interaction. The new user agent
   format will look like this with `<version>` being the MediaLink version:
-
-  `Mozilla/5.0 (compatible; MediaLink/<version>; bot; Go-http-client/1.1; like WhatsApp/2.*; +https://github.com/icedream/irc-medialink) MediaLink/<version>`
-- URLs marked as articles in Open Graph (e. g. Twitter and Mastodon posts, blog
+  `Mozilla/5.0 (compatible; MediaLink/<version>; bot; Go-http-client/1.1; like
+  WhatsApp/2.*; +https://github.com/icedream/irc-medialink) MediaLink/<version>`
+* URLs marked as articles in Open Graph (e. g. Twitter and Mastodon posts, blog
   pages…) will now have an excerpt of the description included in chat.
+* MediaLink binary code has been moved to cmd/medialink. Install instructions
+  respectively adjusted.
+
+### Fixed
+* `https://youtube.com/@alias` style URLs now are properly detected as channels.
+* Fix Japanese text excerpts sometimes cutting off text in the middle of
+  multibyte characters, turning them into placeholder characters.
 
 ## [1.2.0] - 2023-01-17
 ### Added

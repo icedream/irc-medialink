@@ -130,18 +130,30 @@
 			{{ end }}
 		{{ end }}
 		
-		{{ if index . "ImageType" }}
+		{{ if index . "IsMedia" }}
 			{{ if index . "Title" }}
 				·
 			{{ end }}
-			{{ .ImageType }} image,
-			{{ if or (index . "ImageSize") (index . "Size") }}
-				{{ with index . "ImageSize" }}
+			{{ with .MediaType }}
+				{{ . }}
+			{{ end }}
+			{{- if index . "IsAudio" }}
+				audio
+			{{- end }}
+			{{- if index . "IsImage" }}
+				image
+			{{- end }}
+			{{- if index . "IsVideo" }}
+				video
+			{{- end }}
+			{{- if or (index . "IsImage") (index . "IsVideo") }}
+				·
+				{{ with index . "Dimensions" }}
 					{{ .X }}×{{ .Y }}
 				{{ end }}
-				{{ with index . "Size" }}
-					({{ size . }})
-				{{ end }}
+			{{- end }}
+			{{ with index . "Size" }}
+				({{ size . }})
 			{{ end }}
 		{{ end }}
 	{{ end }}

@@ -20,7 +20,7 @@ In order to properly run the bot, you need to [register a SoundCloud application
 
 The bot can be installed through Go using this command:
 
-	go install github.com/icedream/irc-medialink
+	go install github.com/icedream/irc-medialink/cmd/medialink
 
 Then you can find out which options you can pass to the bot directly by running (assuming you put your `$GOPATH/bin` folder into your `PATH`):
 
