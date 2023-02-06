@@ -152,6 +152,12 @@ func main() {
 		log.Fatal("Ident must be longer than 0 chars.")
 	}
 
+	// Templates
+	templates, err := loadTemplates()
+	if err != nil {
+		log.Fatal("Failed to load templates:", err)
+	}
+
 	// Manager
 	m := manager.NewManager()
 
@@ -501,7 +507,7 @@ func main() {
 			log.Print(result.Error)
 		}
 		if result.UserError != nil {
-			if s, err := tplString("error", result.UserError); err != nil {
+			if s, err := templates.tplString("error", result.UserError); err != nil {
 				log.Print(err)
 			} else {
 				s = stripIrcFormattingIfChannelBlocksColors(target, s)
@@ -510,7 +516,7 @@ func main() {
 		}
 		if result.Error == nil && result.UserError == nil && result.Information != nil {
 			for _, i := range result.Information {
-				if s, err := tplString("link-info", i); err != nil {
+				if s, err := templates.tplString("link-info", i); err != nil {
 					log.Print(err)
 				} else {
 					s = stripIrcFormattingIfChannelBlocksColors(target, s)

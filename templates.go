@@ -2,10 +2,13 @@ package main
 
 import (
 	"bytes"
+	"embed"
 	"fmt"
+	"io/fs"
 	"log"
 	"math"
 	"net/url"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -15,6 +18,11 @@ import (
 	"github.com/dustin/go-humanize"
 	"golang.org/x/exp/utf8string"
 )
+
+//go:embed *.tpl
+var templateFS embed.FS
+
+const templateFileGlobFilter = "*.tpl"
 
 var (
 	compactNumUnits = []string{"", "k", "M"}
@@ -99,17 +107,66 @@ var (
 		},
 	}
 
-	ircTpl = template.Must(
-		template.New("").
-			Funcs(tplFuncMap).
-			ParseGlob("*.tpl"))
-
 	rxInsignificantWhitespace = regexp.MustCompile(`\s+`)
 )
 
-func tplString(name string, data interface{}) (string, error) {
+type templateCollection struct {
+	template *template.Template
+}
+
+func loadTemplates() (*templateCollection, error) {
+	t := template.New("").
+		Funcs(tplFuncMap)
+
+	// create a list of templates we look for
+	templateFileEntries, err := fs.Glob(templateFS, templateFileGlobFilter)
+	if err != nil {
+		return nil, err
+	}
+	loadedTemplates := map[string]bool{}
+	for _, templateFileEntry := range templateFileEntries {
+		loadedTemplates[templateFileEntry] = false
+	}
+
+	// load customized templates if any exist
+	templateFileNames, err := filepath.Glob(templateFileGlobFilter)
+	if err != nil {
+		return nil, err
+	}
+	if len(templateFileNames) > 0 {
+		actualFileNamesToLoad := []string{}
+		for _, templateFileName := range templateFileNames {
+			if _, ok := loadedTemplates[templateFileName]; ok {
+				loadedTemplates[templateFileName] = true
+				actualFileNamesToLoad = append(actualFileNamesToLoad, templateFileName)
+			}
+		}
+		t, err = t.ParseFiles(actualFileNamesToLoad...)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// load default templates for those where none were supplied by the user
+	defaultTemplatesToLoad := []string{}
+	for templateFileName, userTemplateLoaded := range loadedTemplates {
+		// skip templates supplied by user
+		if userTemplateLoaded {
+			continue
+		}
+		defaultTemplatesToLoad = append(defaultTemplatesToLoad, templateFileName)
+	}
+	t, err = t.ParseFS(templateFS, defaultTemplatesToLoad...)
+	if err != nil {
+		return nil, err
+	}
+
+	return &templateCollection{t}, nil
+}
+
+func (c *templateCollection) tplString(name string, data interface{}) (string, error) {
 	w := new(bytes.Buffer)
-	if err := ircTpl.ExecuteTemplate(w, name, data); err != nil {
+	if err := c.template.ExecuteTemplate(w, name, data); err != nil {
 		return "", err
 	}
 	s := w.String()

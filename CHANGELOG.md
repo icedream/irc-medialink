@@ -13,6 +13,9 @@ Types of changes are:
 * **Fixed** for any bug fixes.
 
 ## [Unreleased]
+### Added
+- Templates no longer need to be installed alongside the binary. Defaults are
+  precompiled into the binary.
 ### Fixed
 - `https://youtube.com/@alias` style URLs now are properly detected as channels.
 - Fix Japanese text excerpts sometimes cutting off text in the middle of
