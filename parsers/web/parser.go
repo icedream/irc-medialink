@@ -124,6 +124,7 @@ func (p *Parser) Parse(ctx context.Context, u *url.URL, referer *url.URL) (resul
 		req.Header.Set("Referer", referer.String())
 	}
 	req.Header.Set("User-Agent", p.UserAgent)
+	req.Header.Set("Accept", "*/*")
 	if len(p.Config.AcceptLanguage) > 0 {
 		req.Header.Set("Accept-Language", p.Config.AcceptLanguage)
 	}
