@@ -14,7 +14,6 @@ COPY ./ ./
 ARG APPLICATION_NAME
 RUN --mount=type=cache,target=/root/.cache/go-build \
 	EXTRA_LDFLAGS='-extldflags -static' ./build.sh -o /irc-medialink
-RUN cp *.tpl /
 
 ###
 
