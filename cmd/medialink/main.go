@@ -13,8 +13,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/alecthomas/kingpin/v2"
 	irc "github.com/thoj/go-ircevent"
-	"gopkg.in/alecthomas/kingpin.v2"
 	"mvdan.cc/xurls"
 
 	"github.com/icedream/irc-medialink/manager"

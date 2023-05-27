@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"sort"
 
+	"github.com/alecthomas/kingpin/v2"
 	"github.com/serenize/snaker"
-	"gopkg.in/alecthomas/kingpin.v2"
 	"gopkg.in/yaml.v3"
 )
 
