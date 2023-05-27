@@ -15,6 +15,7 @@ require (
 	github.com/vartanbeno/go-reddit/v2 v2.0.1
 	github.com/yanatan16/golang-soundcloud v0.0.0-20161013200625-a182dd459b66
 	github.com/yhat/scrape v0.0.0-20161128144610-24b7890b0945
+	golang.org/x/exp v0.0.0-20230118134722-a68e582fa157
 	golang.org/x/net v0.5.0
 	golang.org/x/oauth2 v0.4.0
 	google.golang.org/api v0.106.0
@@ -52,7 +53,6 @@ require (
 	github.com/onsi/gomega v1.24.2 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	go.opencensus.io v0.24.0 // indirect
-	golang.org/x/exp v0.0.0-20230118134722-a68e582fa157 // indirect
 	golang.org/x/sys v0.4.0 // indirect
 	golang.org/x/text v0.6.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
