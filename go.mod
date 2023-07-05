@@ -16,7 +16,7 @@ require (
 	github.com/yanatan16/golang-soundcloud v0.0.0-20161013200625-a182dd459b66
 	github.com/yhat/scrape v0.0.0-20161128144610-24b7890b0945
 	golang.org/x/net v0.12.0
-	golang.org/x/oauth2 v0.9.0
+	golang.org/x/oauth2 v0.10.0
 	google.golang.org/api v0.130.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/neurosnap/sentences.v1 v1.0.7
@@ -31,7 +31,7 @@ require (
 )
 
 require (
-	cloud.google.com/go/compute v1.19.3 // indirect
+	cloud.google.com/go/compute v1.20.1 // indirect
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137 // indirect
