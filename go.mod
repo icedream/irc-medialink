@@ -15,7 +15,7 @@ require (
 	github.com/vartanbeno/go-reddit/v2 v2.0.1
 	github.com/yanatan16/golang-soundcloud v0.0.0-20161013200625-a182dd459b66
 	github.com/yhat/scrape v0.0.0-20161128144610-24b7890b0945
-	golang.org/x/net v0.16.0
+	golang.org/x/net v0.17.0
 	golang.org/x/oauth2 v0.13.0
 	google.golang.org/api v0.146.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
