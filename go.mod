@@ -10,7 +10,7 @@ require (
 	github.com/jarcoal/httpmock v1.3.1
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/serenize/snaker v0.0.0-20201027110005-a7ad2135616e
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 	github.com/thoj/go-ircevent v0.0.0-20210723090443-73e444401d64
 	github.com/vartanbeno/go-reddit/v2 v2.0.1
 	github.com/yanatan16/golang-soundcloud v0.0.0-20161013200625-a182dd459b66
